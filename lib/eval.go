@@ -12,48 +12,48 @@ func (self *M) Eval(pc PC) error {
 		op := self.ops[pc]
 		
 		switch op.Code() {
-		case ADD:
-			fmt.Printf("ADD %v %v\n", op.Reg1(), op.Reg2())
-			v1 := &env.Regs[op.Reg1()]
-			v2 := env.Regs[op.Reg2()]
-			v1.Type().(NumType).AddVal(v1, v2)
+		case INC:
+			fmt.Printf("INC %v %v\n", op.Reg1(), op.Reg2())
+			l := &env.Regs[op.Reg1()]
+			r := env.Regs[op.Reg2()]
+			var lv interface{}
+			var err error
+			
+			if lv, err = l.Data(); err != nil {
+				return err
+			}
+			
+			var rv interface{}
+			
+			if rv, err = r.Data(); err != nil {
+				return err
+			}
+			
+			l.Init(l.Type(), lv.(int)+rv.(int))
 			pc++
 			break
 
 		case DEC:
-			fmt.Printf("DEC %v\n", op.Reg1())
-			v := &env.Regs[op.Reg1()]
-			d, err := v.Data()
-
-			if err != nil {
+			fmt.Printf("DEC %v %v\n", op.Reg1(), op.Reg2())
+			l := &env.Regs[op.Reg1()]
+			r := env.Regs[op.Reg2()]
+			var lv interface{}
+			var err error
+			
+			if lv, err = l.Data(); err != nil {
 				return err
 			}
 			
-			v.Init(v.Type(), d.(int)-1)
-			pc++
-			break
-
-		case INC:
-			fmt.Printf("INC %v\n", op.Reg1())
-			v := &env.Regs[op.Reg1()]
-			d, err := v.Data()
-
-			if err != nil {
+			var rv interface{}
+			
+			if rv, err = r.Data(); err != nil {
 				return err
 			}
 			
-			v.Init(v.Type(), d.(int)+1)
+			l.Init(l.Type(), lv.(int)-rv.(int))
 			pc++
 			break
-
-		case SUB:
-			fmt.Printf("SUB %v %v\n", op.Reg1(), op.Reg2())
-			v1 := &env.Regs[op.Reg1()]
-			v2 := env.Regs[op.Reg2()]
-			v1.Type().(NumType).SubVal(v1, v2)
-			pc++
-			break
-
+			
 		case STOP:
 			fmt.Printf("STOP\n")
 			return nil
