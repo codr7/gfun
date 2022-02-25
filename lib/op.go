@@ -28,15 +28,15 @@ const (
 	STOP = 0
 )
 
-func (self *M) EmitStop() {
-	self.Emit(STOP)
+func (self *M) EmitDec(reg1 int, reg2 int) *Op {
+	return self.Emit(Op(DEC + (reg1 << 4) + (reg2 << 12)))
 }
 
 func (self *M) EmitInc(reg1 int, reg2 int) *Op {
 	return self.Emit(Op(INC + (reg1 << 4) + (reg2 << 12)))
 }
 
-func (self *M) EmitDec(reg1 int, reg2 int) *Op {
-	return self.Emit(Op(DEC + (reg1 << 4) + (reg2 << 12)))
+func (self *M) EmitStop() {
+	self.Emit(STOP)
 }
 
