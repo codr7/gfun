@@ -8,6 +8,7 @@ type Type interface {
 	GetVal(interface{}) (interface{}, error)
 	Parents() []Type
 	Isa(Type) bool
+	BoolVal(Val) (bool, error)
 }
 
 type BasicType struct {

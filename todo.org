@@ -1,9 +1,11 @@
-* add env.Get/Set
-** recursive lookup
 * add fib ops
+** call
+*** add Fun
 ** branch
 ** goto
-** call
+* add macros
+* add reader
+** add Form
 * add Lib
 ** add abc
 *** move M types

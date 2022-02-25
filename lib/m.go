@@ -11,6 +11,7 @@ const (
 type PC int
 
 type M struct {
+	BoolType BoolType
 	IntType IntType
 	RootEnv Env
 	
@@ -21,5 +22,6 @@ type M struct {
 
 func (self *M) Init() {
 	self.RootEnv.Init(nil)
+	self.BoolType.Init(self)
 	self.IntType.Init(self)
 }
