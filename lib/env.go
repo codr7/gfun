@@ -1,7 +1,7 @@
 package gfun
 
 const (
-	RegCount = 64
+	RegCount = 256
 	ArgCount = 8
 	RetCount = 4
 )

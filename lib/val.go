@@ -15,5 +15,5 @@ func (self *Val) Type() Type {
 }
 
 func (self *Val) Data() (interface{}, error) {
-	return self.gtype.GetValue(self.data)
+	return self.gtype.GetVal(self.data)
 }

@@ -1,3 +1,9 @@
 * add env.Get/Set
 ** recursive lookup
 * add fib ops
+** branch
+** goto
+** call
+64
+
+0 op code|4 reg 1|12 reg 2|20 ?

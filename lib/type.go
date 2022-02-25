@@ -5,7 +5,7 @@ import (
 
 type Type interface {
 	Name() *Sym
-	GetValue(interface{}) (interface{}, error)
+	GetVal(interface{}) (interface{}, error)
 	Parents() []Type
 	Isa(Type) bool
 }
@@ -27,7 +27,7 @@ func (self *BasicType) Init(m *M, parents...Type) {
 	}
 }
 
-func (self *BasicType) GetValue(in interface{}) (interface{}, error) {
+func (self *BasicType) GetVal(in interface{}) (interface{}, error) {
 	return in, nil
 }
 
@@ -45,4 +45,9 @@ func (self *BasicType) Parents() []Type {
 
 func (self *BasicType) Isa(parent Type) bool {
 	return self.parents[parent] != nil
+}
+
+type NumType interface {
+	AddVal(l *Val, r Val) error
+	SubVal(l *Val, r Val) error
 }
