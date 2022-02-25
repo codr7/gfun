@@ -4,6 +4,13 @@
 ** branch
 ** goto
 ** call
+* add Lib
+** add abc
+*** move M types
+
 64
 
 0 op code|4 reg 1|12 reg 2|20 ?
+
+fun: fib [n Int] [Int]
+  (if (< n 2) n (fib (- n 1))))

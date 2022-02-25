@@ -47,7 +47,3 @@ func (self *BasicType) Isa(parent Type) bool {
 	return self.parents[parent] != nil
 }
 
-type NumType interface {
-	AddVal(l *Val, r Val) error
-	SubVal(l *Val, r Val) error
-}
