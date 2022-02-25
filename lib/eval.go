@@ -81,7 +81,6 @@ func (self *M) Eval(pc PC) error {
 		case INC:
 			fmt.Printf("INC %v %v\n", op.Reg1(), op.Reg2())
 			l := &env.Regs[op.Reg1()]
-			r := env.Regs[op.Reg2()]
 			var lv interface{}
 			var err error
 			
@@ -89,6 +88,7 @@ func (self *M) Eval(pc PC) error {
 				return err
 			}
 			
+			r := env.Regs[op.Reg2()]
 			var rv interface{}
 			
 			if rv, err = r.Data(); err != nil {
@@ -98,6 +98,12 @@ func (self *M) Eval(pc PC) error {
 			l.Init(l.Type(), lv.(int)+rv.(int))
 			pc++
 
+		case LOAD_INT2:
+			val := int(self.ops[pc+1])
+			fmt.Printf("LOAD_INT2 %v %v\n", op.Reg1(), val)
+			env.Regs[op.Reg1()].Init(&self.IntType, val)
+			pc += 2
+			
 		case STOP:
 			fmt.Printf("STOP\n")
 			return nil

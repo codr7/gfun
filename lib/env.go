@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	RegCount = 256
+	RegCount = 1 << OpRegBits
 	ArgCount = 8
 	RetCount = 4
 )

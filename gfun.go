@@ -11,7 +11,7 @@ func main() {
 	m.Init()
 
 	m.RootEnv.Regs[1].Init(&m.IntType, 35)
-	m.RootEnv.Regs[2].Init(&m.IntType, 7)
+	m.EmitLoadInt(2, 7)
 	m.EmitInc(1, 2)
 	m.EmitStop()
 

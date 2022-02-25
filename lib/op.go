@@ -3,7 +3,7 @@ package gfun
 type Op uint64
 
 const (
-	OpCodeBits = 4
+	OpCodeBits = 6
 	OpRegBits = 8
 	OpReg2Bits = OpCodeBits + OpRegBits
 )
@@ -34,6 +34,7 @@ const (
 	CALL
 	DEC
 	INC
+	LOAD_INT2
 )
 
 func (self *M) EmitBranch(cond Reg) *Op {
@@ -64,6 +65,11 @@ func (self *M) EmitDec(dst Reg, src Reg) *Op {
 
 func (self *M) EmitInc(dst Reg, src Reg) *Op {
 	return self.Emit(Op(INC + (dst << OpCodeBits) + (src << OpReg2Bits)))
+}
+
+func (self *M) EmitLoadInt(dst Reg, val int) *Op {
+	self.Emit(Op(LOAD_INT2 + (dst << OpCodeBits)))
+	return self.Emit(Op(val))
 }
 
 func (self *M) EmitStop() {

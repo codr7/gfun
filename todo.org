@@ -1,3 +1,7 @@
+* define RegCount using OpRegBits
+* remove Dec
+* add LoadInt1
+* add LoadBool
 * add frame
 ** add M.frames
 * add fib ops
