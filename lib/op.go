@@ -32,7 +32,6 @@ const (
 	
 	BRANCH
 	CALL
-	DEC
 	INC
 	LOAD_INT2
 )
@@ -57,10 +56,6 @@ func (self *M) EmitCall(target Reg, flags CallFlags) *Op {
 	}
 
 	return self.Emit(op)
-}
-
-func (self *M) EmitDec(dst Reg, src Reg) *Op {
-	return self.Emit(Op(DEC + (dst << OpCodeBits) + (src << OpReg2Bits)))
 }
 
 func (self *M) EmitInc(dst Reg, src Reg) *Op {
