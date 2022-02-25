@@ -1,7 +1,6 @@
 * add fib ops
 ** call
 *** add Fun
-** branch
 ** goto
 * add macros
 * add reader

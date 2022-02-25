@@ -10,14 +10,16 @@ const (
 	RetCount = 4
 )
 
+type Reg int
+
 type Env struct {	
 	Regs [RegCount]Val
 	Args [ArgCount]Val
 	Rets [RetCount]Val
 
 	outer *Env
-	bindings map[*Sym]int
-	regCount int
+	bindings map[*Sym]Reg
+	regCount Reg
 }
 
 func (self *Env) Init(outer *Env) {
@@ -39,8 +41,8 @@ func (self *Env) FindVal(key *Sym) *Val {
 }
 
 
-func (self *Env) GetReg(key *Sym) (int, error) {
-	tryOuter := func() (int, error) {
+func (self *Env) GetReg(key *Sym) (Reg, error) {
+	tryOuter := func() (Reg, error) {
 		if self.outer == nil {
 			return -1, fmt.Errorf("Unknown id: %v", key)
 		}
@@ -61,9 +63,9 @@ func (self *Env) GetReg(key *Sym) (int, error) {
 	return reg, nil
 }
 
-func (self *Env) SetReg(key *Sym, reg int) error {
+func (self *Env) SetReg(key *Sym, reg Reg) error {
 	if self.bindings == nil {
-		self.bindings = make(map[*Sym]int)
+		self.bindings = make(map[*Sym]Reg)
 	} else {
 		if v, dup := self.bindings[key]; dup {
 			return fmt.Errorf("Dup id: %v (%v)", key, v)
@@ -84,7 +86,7 @@ func (self *Env) GetVal(key *Sym) (*Val, error) {
 	return &self.Regs[reg], nil
 }
 
-func (self *Env) AllocReg(key *Sym) (int, error) {
+func (self *Env) AllocReg(key *Sym) (Reg, error) {
 	reg := self.regCount
 	self.regCount++
 	return reg, self.SetReg(key, reg)

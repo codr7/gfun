@@ -12,6 +12,21 @@ func (self *M) Eval(pc PC) error {
 		op := self.ops[pc]
 		
 		switch op.Code() {
+		case BRANCH_REG:
+			fmt.Printf("BRANCH_REG %v %v\n", op.Reg1())
+			cond := env.Regs[op.Reg1()]
+			res, err := cond.Type().BoolVal(cond);
+
+			if err != nil {
+				return err
+			}
+
+			if res {
+				pc++
+			} else {
+				pc += 2
+			}
+
 		case DEC:
 			fmt.Printf("DEC %v %v\n", op.Reg1(), op.Reg2())
 			l := &env.Regs[op.Reg1()]
@@ -31,7 +46,6 @@ func (self *M) Eval(pc PC) error {
 			
 			l.Init(l.Type(), lv.(int)-rv.(int))
 			pc++
-			break
 
 		case INC:
 			fmt.Printf("INC %v %v\n", op.Reg1(), op.Reg2())
@@ -52,8 +66,7 @@ func (self *M) Eval(pc PC) error {
 			
 			l.Init(l.Type(), lv.(int)+rv.(int))
 			pc++
-			break
-			
+
 		case STOP:
 			fmt.Printf("STOP\n")
 			return nil
