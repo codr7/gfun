@@ -3,21 +3,23 @@ package gfun
 type Op uint64
 
 const (
+	OpBits = 64
 	OpCodeBits = 6
+	OpPcBits = 10
 	OpRegBits = 8
 	OpReg2Bits = OpCodeBits + OpRegBits
 )
 
 func (self Op) Code() int {
-	return int(self & 0x0000000F)
+	return int(self & ((1 << OpCodeBits)-1))
 }
 
 func (self Op) Reg1() Reg {
-	return Reg(self & 0x00000FF0 >> OpCodeBits)
+	return Reg(self & ((1 << OpReg2Bits)-1) >> OpCodeBits)
 }
 
 func (self Op) Reg2() Reg {
-	return Reg(self & 0x000FF000 >> OpReg2Bits)
+	return Reg(self & ((1 << (OpReg2Bits+OpRegBits))-1) >> OpReg2Bits)
 }
 
 func (self *M) Emit(op Op) *Op {
@@ -32,6 +34,7 @@ const (
 	
 	BRANCH
 	CALL
+	GOTO
 	INC
 	LOAD_INT1
 	LOAD_INT2
@@ -59,12 +62,24 @@ func (self *M) EmitCall(target Reg, flags CallFlags) *Op {
 	return self.Emit(op)
 }
 
+const (
+	OpGotoPcBits = OpCodeBits
+)
+
+func (self Op) GotoPc() PC {
+	return PC(self >> OpGotoPcBits)
+}
+
+func (self *M) EmitGoto(pc PC) *Op {
+	return self.Emit(Op(GOTO + (pc << OpCodeBits)))
+}
+
 func (self *M) EmitInc(dst Reg, src Reg) *Op {
 	return self.Emit(Op(INC + (dst << OpCodeBits) + (src << OpReg2Bits)))
 }
 
 const (
-	OpLoadInt1Max = 1 << (64 - OpRegBits - OpCodeBits - 1)
+	OpLoadInt1Max = 1 << (OpBits - OpRegBits - OpCodeBits - 1)
 	OpLoadInt1ValBits = OpReg2Bits
 )
 

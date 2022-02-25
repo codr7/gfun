@@ -58,6 +58,10 @@ func (self *M) Eval(pc PC) error {
 				pc += 2
 			}
 
+		case GOTO:
+			fmt.Printf("GOTO %v\n", op.GotoPc())			
+			pc = op.GotoPc()
+			
 		case INC:
 			fmt.Printf("INC %v %v\n", op.Reg1(), op.Reg2())
 			l := &env.Regs[op.Reg1()]

@@ -1,11 +1,12 @@
-* add LoadBool
+* add LOAD_BOOL
 * add frame
 ** add M.frames
-* add fib ops
-** goto
+* add Form interface
 * add macros
+** add Macro struct/type
+** add if-macro
 * add reader
-** add Form
+* fib bench
 * add Lib
 ** add abc
 *** move M types
