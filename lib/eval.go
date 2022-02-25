@@ -12,8 +12,39 @@ func (self *M) Eval(pc PC) error {
 		op := self.ops[pc]
 		
 		switch op.Code() {
-		case BRANCH_REG:
-			fmt.Printf("BRANCH_REG %v %v\n", op.Reg1())
+		case CALL:
+			fmt.Printf("CALL %v\n", op.Reg1())
+			tgt := env.Regs[op.Reg1()]
+			
+			if tgt.Type() != &self.FunType {
+				return fmt.Errorf("Not callable: %v", tgt)
+			}
+
+			var flags CallFlags
+			flags.Drop = (op >> OpReg2Bits) & 01 == 1
+			flags.Drop = (op >> (OpReg2Bits+1)) & 01 == 1
+			flags.Drop = (op >> (OpReg2Bits+2)) & 01 == 1
+
+			var err error
+			var fun interface{}
+			
+			fun, err = tgt.Data()
+
+			if err != nil {
+				return err
+			}
+
+			var ret PC
+			ret, err = fun.(*Fun).Call(flags, pc+1)
+
+			if err != nil {
+				return err
+			}
+
+			pc = ret
+			
+		case BRANCH:
+			fmt.Printf("BRANCH %v\n", op.Reg1())
 			cond := env.Regs[op.Reg1()]
 			res, err := cond.Type().BoolVal(cond);
 

@@ -3,7 +3,7 @@ package gfun
 type Op uint64
 
 const (
-	OpCodeBits = 5
+	OpCodeBits = 4
 	OpRegBits = 8
 	OpReg2Bits = OpCodeBits + OpRegBits
 )
@@ -30,21 +30,40 @@ func (self *M) Emit(op Op) *Op {
 const (
 	STOP = iota
 	
-	BRANCH_REG
+	BRANCH
+	CALL
 	DEC
 	INC
 )
 
-func (self *M) EmitBranchReg(condReg Reg) *Op {
-	return self.Emit(Op(BRANCH_REG + (condReg << OpCodeBits)))
+func (self *M) EmitBranch(cond Reg) *Op {
+	return self.Emit(Op(BRANCH + (cond << OpCodeBits)))
 }
 
-func (self *M) EmitDec(reg1 Reg, reg2 Reg) *Op {
-	return self.Emit(Op(DEC + (reg1 << OpCodeBits) + (reg2 << OpReg2Bits)))
+func (self *M) EmitCall(target Reg, flags CallFlags) *Op {
+	op := Op(CALL + (target << OpCodeBits))
+
+	if flags.Drop {
+		op += 1 << OpReg2Bits
+	}
+
+	if flags.Memo {
+		op += 1 << (OpReg2Bits+1)
+	}
+
+	if flags.Tail {
+		op += 1 << (OpReg2Bits+2)
+	}
+
+	return self.Emit(op)
 }
 
-func (self *M) EmitInc(reg1 Reg, reg2 Reg) *Op {
-	return self.Emit(Op(INC + (reg1 << OpCodeBits) + (reg2 << OpReg2Bits)))
+func (self *M) EmitDec(dst Reg, src Reg) *Op {
+	return self.Emit(Op(DEC + (dst << OpCodeBits) + (src << OpReg2Bits)))
+}
+
+func (self *M) EmitInc(dst Reg, src Reg) *Op {
+	return self.Emit(Op(INC + (dst << OpCodeBits) + (src << OpReg2Bits)))
 }
 
 func (self *M) EmitStop() {

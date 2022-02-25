@@ -1,6 +1,6 @@
+* add frame
+** add M.frames
 * add fib ops
-** call
-*** add Fun
 ** goto
 * add macros
 * add reader

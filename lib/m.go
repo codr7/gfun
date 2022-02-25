@@ -12,7 +12,9 @@ type PC int
 
 type M struct {
 	BoolType BoolType
+	FunType FunType
 	IntType IntType
+	
 	RootEnv Env
 	
 	syms sync.Map
@@ -23,5 +25,6 @@ type M struct {
 func (self *M) Init() {
 	self.RootEnv.Init(nil)
 	self.BoolType.Init(self)
+	self.FunType.Init(self)
 	self.IntType.Init(self)
 }
