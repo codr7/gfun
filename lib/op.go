@@ -38,10 +38,23 @@ const (
 	INC
 	LOAD_INT1
 	LOAD_INT2
+	NOP
 )
+
+func (self *M) EmitStop() {
+	self.Emit(STOP)
+}
 
 func (self *M) EmitBranch(cond Reg) *Op {
 	return self.Emit(Op(BRANCH + (cond << OpCodeBits)))
+}
+
+func (self Op) CallFlags() CallFlags {
+	var flags CallFlags
+	flags.Drop = (self >> OpReg2Bits) & 1 == 1
+	flags.Drop = (self >> (OpReg2Bits+1)) & 1 == 1
+	flags.Drop = (self >> (OpReg2Bits+2)) & 1 == 1
+	return flags
 }
 
 func (self *M) EmitCall(target Reg, flags CallFlags) *Op {
@@ -96,7 +109,6 @@ func (self *M) EmitLoadInt(dst Reg, val int) *Op {
 	return self.Emit(Op(LOAD_INT1 + Op(dst << OpCodeBits) + Op(val << OpLoadInt1ValBits)))
 }
 
-func (self *M) EmitStop() {
-	self.Emit(STOP)
+func (self *M) EmitNop() {
+	self.Emit(NOP)
 }
-
