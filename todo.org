@@ -1,7 +1,3 @@
 * add env.Get/Set
 ** recursive lookup
-* add Op type
-** uint64
-** 4 bits for op type
-** add Push op
-*** encode reg in remaining bits
+* add fib ops

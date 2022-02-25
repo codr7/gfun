@@ -1,11 +1,9 @@
 package gfun
 
 import (
-	"fmt"
 )
 
 type Type interface {
-	fmt.Stringer
 	Name() *Sym
 	GetValue(interface{}) (interface{}, error)
 	Parents() []Type
