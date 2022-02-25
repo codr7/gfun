@@ -1,5 +1,3 @@
-* remove Dec
-* add LoadInt1
 * add LoadBool
 * add frame
 ** add M.frames

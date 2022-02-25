@@ -21,4 +21,6 @@ func main() {
 
 	v, _ := m.RootEnv.Regs[1].Data()
 	fmt.Printf("%v\n", v)
+
+	//fmt.Printf("load1 max: %v\n", 1 << (64 - gfun.OpRegBits - gfun.OpCodeBits - 1))
 }

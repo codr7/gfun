@@ -33,6 +33,7 @@ const (
 	BRANCH
 	CALL
 	INC
+	LOAD_INT1
 	LOAD_INT2
 )
 
@@ -62,9 +63,22 @@ func (self *M) EmitInc(dst Reg, src Reg) *Op {
 	return self.Emit(Op(INC + (dst << OpCodeBits) + (src << OpReg2Bits)))
 }
 
+const (
+	OpLoadInt1Max = 1 << (64 - OpRegBits - OpCodeBits - 1)
+	OpLoadInt1ValBits = OpReg2Bits
+)
+
+func (self Op) LoadInt1Val() int {
+	return int(self >> OpLoadInt1ValBits)
+}
+
 func (self *M) EmitLoadInt(dst Reg, val int) *Op {
-	self.Emit(Op(LOAD_INT2 + (dst << OpCodeBits)))
-	return self.Emit(Op(val))
+	if val > OpLoadInt1Max-1 || val < -OpLoadInt1Max {
+		self.Emit(Op(LOAD_INT2 + (dst << OpCodeBits)))
+		return self.Emit(Op(val))
+	}
+
+	return self.Emit(Op(LOAD_INT1 + Op(dst << OpCodeBits) + Op(val << OpLoadInt1ValBits)))
 }
 
 func (self *M) EmitStop() {
