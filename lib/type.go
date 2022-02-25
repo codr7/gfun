@@ -6,7 +6,7 @@ import (
 
 type Type interface {
 	fmt.Stringer
-	Name() Sym
+	Name() *Sym
 	GetValue(interface{}) (interface{}, error)
 	Parents() []Type
 	Isa(Type) bool

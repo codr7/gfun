@@ -6,11 +6,12 @@ import (
 
 type M struct {
 	IntType IntType
-	nextSym uint64
+	RootEnv Env
+	
 	syms sync.Map
-	rootEnv Env
 }
 
 func (self *M) Init() {
+	self.RootEnv.Init(nil)
 	self.IntType.Init(self)
 }

@@ -2,31 +2,35 @@ package gfun
 
 import (
 	"fmt"
-	"sync/atomic"
 )
 
-type Sym uint64
+type Sym struct {
+	name string
+}
 
-func (self *M) Sym(name string, args ...interface{}) Sym {
-	var s Sym
+func (self *Sym) Init(name string) *Sym {
+	self.name = name
+	return self
+}
 
+func (self *Sym) Name() string {
+	return self.name
+}
+
+func (self *M) Sym(name string, args ...interface{}) *Sym {
 	if len(args) > 0 {
 		name = fmt.Sprintf(name, args...)
 	}
 
 	if found, _ := self.syms.Load(name); found != nil {
-		return found.(Sym)
+		return found.(*Sym)
 	}
 	
-	s = self.NextSym()
+	s := new(Sym).Init(name)
 	
 	if ls, found := self.syms.LoadOrStore(name, s); found {
-		return ls.(Sym)
+		return ls.(*Sym)
 	}
 
 	return s 
-}
-
-func (self *M) NextSym() Sym {
-	return Sym(atomic.AddUint64(&self.nextSym, 1))
 }
