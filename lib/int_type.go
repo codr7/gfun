@@ -4,6 +4,6 @@ type IntType struct {
 	BasicType
 }
 
-func (self *IntType) Name() string {
-	return "Int"
+func (self *IntType) Name() Sym {
+	return self.m.Sym("Int")
 }

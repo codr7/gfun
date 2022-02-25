@@ -12,5 +12,5 @@ type M struct {
 }
 
 func (self *M) Init() {
-	self.IntType.Init()
+	self.IntType.Init(self)
 }

@@ -13,10 +13,13 @@ type Type interface {
 }
 
 type BasicType struct {
+	m *M
 	parents map[Type]Type
 }
 
-func (self *BasicType) Init(parents...Type) {
+func (self *BasicType) Init(m *M, parents...Type) {
+	self.m = m
+
 	for _, p := range parents {
 		self.parents[p] = p
 		
