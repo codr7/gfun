@@ -1,11 +1,13 @@
-* add reader
-** add Reader type
-** add id reader
-** add LitForm form
-* add repl
+* finish ReadId()
+* add LitForm
+* finish ReadLit()
 * add macros
 ** add Macro struct/type
+** add outer field/arg
+** run in sequence
 ** add if-macro
+** add BindMacro
+*** always create new (don't use Get)
 * fib bench
 * add LOAD_BOOL
 ** copy LOAD_INT1
@@ -13,3 +15,4 @@
 * add Lib
 ** add abc
 *** move M types
+* add Multi

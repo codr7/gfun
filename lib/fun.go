@@ -31,11 +31,12 @@ func (self *Fun) Call(flags CallFlags, ret PC) (PC, error) {
 	return self.body(self, flags, ret)
 }
 
-func (self *Fun) Emit(body Form) (PC, error) {
+func (self *Fun) Emit(in []Form, body Form) (PC, []Form, error) {
 	startPc := self.m.emitPc
-
-	if err := body.Emit(self.m); err != nil {
-		return -1, err
+	var err error
+	
+	if in, err = body.Emit(in, self.m); err != nil {
+		return -1, nil, err
 	}
 
 	self.m.EmitRet()
@@ -45,7 +46,7 @@ func (self *Fun) Emit(body Form) (PC, error) {
 		return startPc, nil
 	}
 
-	return startPc, nil
+	return startPc, in, nil
 }
 
 func (self *M) BindNewFun(name *Sym, body FunBody) (*Fun, error) {

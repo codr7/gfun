@@ -12,13 +12,13 @@ fun: fib [n Int] [Int]
 ### intro
 gfun aims to become a Lispy scripting language implemented and embedded in Go.<br/><br/>
 
-Much along the same lines as [g-fu](https://github.com/codr7/g-fu), but with a tighter implementation that takes everything learned since into account. Among other changes; the VM now uses bytecode rather than structs and interfaces, and registers in place of stacks; and macro expansion works more like you would expect it to. The syntax is in many ways more traditional, but also simply different in places because of preferences picked up over time.<br/><br/>
+Much along the same lines as [g-fu](https://github.com/codr7/g-fu), but a tighter implementation that takes everything learned since into account. Among other changes; the VM now uses bytecode rather than structs and interfaces, and registers in place of stacks; and macro expansion works more like you would expect it to. The syntax is in many ways more traditional, but also simply different in places because of preferences picked up over time.<br/><br/>
 
-The different layers of the implementation are well separated and may be used separately or mixed and matched, for example by putting a different syntax on top or adapting the existing one.<br/><br/>
+The different layers of the implementation are well separated and may be used separately or mixed and matched; for example by putting a different syntax on top or adapting the existing one, or adding additional compilation steps..<br/><br/>
 
 I intend to keep the implementation simple and small enough to be fun to play around with for educational purposes; which also ensures it stays reasonably general purpose and stable/bug free.
 
-### looking for an experienced Go codr?
+### looking for an experienced Go coder/mentor?
 I'm currently available for hire.<br/>
 Remote or relocation within Europe.<br/>
 Send a message to codr7 at protonmail and I'll get back to you asap.

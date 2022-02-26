@@ -14,6 +14,7 @@ type M struct {
 	BoolType BoolType
 	FunType FunType
 	IntType IntType
+	NilType NilType
 	
 	RootEnv Env
 	
@@ -31,7 +32,8 @@ func (self *M) Init() {
 	self.BoolType.Init(self)
 	self.FunType.Init(self)
 	self.IntType.Init(self)
-
+	self.NilType.Init(self)
+	
 	self.BindNewFun(self.Sym("+"), func(self *Fun, callFlags CallFlags, ret PC) (PC, error) {
 		var err error
 		var l interface{}

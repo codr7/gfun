@@ -1,7 +1,7 @@
 package gfun
 
 type Form interface {
-	Emit(m *M) error
+	Emit(in []Form, m *M) ([]Form, error)
 }
 
 type BasicForm struct {
@@ -22,12 +22,12 @@ func (self *IdForm) Init(pos Pos, id *Sym) {
 	self.id = id
 }
 
-func (self *IdForm) Emit(m *M) error {
+func (self *IdForm) Emit(in []Form, m *M) ([]Form, error) {
 	v, err := m.env.GetVal(self.id)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 	
-	return v.Type().EmitVal(*v)
+	return v.Type().EmitVal(in, *v)
 }

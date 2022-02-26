@@ -10,7 +10,7 @@ type Type interface {
 	Parents() []Type
 	Isa(Type) bool
 	BoolVal(Val) (bool, error)
-	EmitVal(Val) error
+	EmitVal([]Form, Val) ([]Form, error)
 }
 
 type BasicType struct {
@@ -50,6 +50,77 @@ func (self *BasicType) Isa(parent Type) bool {
 	return self.parents[parent] != nil
 }
 
-func (self *BasicType) EmitVal(val Val) error {
-	return fmt.Errorf("Emit not supported: %v", self)
+func (self *BasicType) EmitVal(in []Form, val Val) ([]Form, error) {
+	return nil, fmt.Errorf("Emit not supported: %v", self)
+}
+
+type BoolType struct {
+	BasicType
+}
+
+func (self *BoolType) Name() *Sym {
+	return self.m.Sym("Bool")
+}
+
+func (self *BoolType) BoolVal(val Val) (bool, error) {
+	v, err := val.Data()
+
+	if err != nil {
+		return false, err
+	}
+	
+	return v.(bool), nil
+}
+
+type FunType struct {
+	BasicType
+}
+
+func (self *FunType) Name() *Sym {
+	return self.m.Sym("Fun")
+}
+
+func (self *FunType) BoolVal(val Val) (bool, error) {
+	return true, nil
+}
+
+type IntType struct {
+	BasicType
+}
+
+func (self *IntType) Name() *Sym {
+	return self.m.Sym("Int")
+}
+
+func (self *IntType) BoolVal(val Val) (bool, error) {
+	v, err := val.Data()
+
+	if err != nil {
+		return false, err
+	}
+	
+	return v.(int) != 0, nil
+}
+
+func (self *IntType) EmitVal(in []Form, val Val) ([]Form, error) {
+	v, err := val.Data()
+
+	if err != nil {
+		return nil, err
+	}
+	
+	self.m.EmitLoadInt(0, v.(int))
+	return in, nil
+}
+
+type NilType struct {
+	BasicType
+}
+
+func (self *NilType) Name() *Sym {
+	return self.m.Sym("Nil")
+}
+
+func (self *NilType) BoolVal(val Val) (bool, error) {
+	return false, nil
 }
