@@ -1,19 +1,13 @@
-* add LOAD_BOOL
-* add frame
-** add M.frames
-* add Form interface
+* add + Fun
+** bind in root env
 * add macros
 ** add Macro struct/type
 ** add if-macro
 * add reader
+** add Reader type
 * fib bench
+* add LOAD_BOOL
+** copy LOAD_INT1
 * add Lib
 ** add abc
 *** move M types
-
-64
-
-0 op code|4 reg 1|12 reg 2|20 ?
-
-fun: fib [n Int] [Int]
-  (if (< n 2) n (fib (- n 1))))

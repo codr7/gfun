@@ -1,6 +1,7 @@
 package gfun
 
 import (
+	"fmt"
 )
 
 type Type interface {
@@ -9,6 +10,7 @@ type Type interface {
 	Parents() []Type
 	Isa(Type) bool
 	BoolVal(Val) (bool, error)
+	EmitVal(Val) error
 }
 
 type BasicType struct {
@@ -48,3 +50,6 @@ func (self *BasicType) Isa(parent Type) bool {
 	return self.parents[parent] != nil
 }
 
+func (self *BasicType) EmitVal(val Val) error {
+	return fmt.Errorf("Emit not supported: %v", self)
+}

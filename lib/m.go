@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	OpCount = 1024
+	OpCount = 1 << OpPcBits
 )
 
 type PC int
@@ -20,10 +20,14 @@ type M struct {
 	syms sync.Map
 	ops [OpCount]Op
 	emitPc PC
+	env *Env
+	frame *Frame
 }
 
 func (self *M) Init() {
 	self.RootEnv.Init(nil)
+	self.env = &self.RootEnv
+
 	self.BoolType.Init(self)
 	self.FunType.Init(self)
 	self.IntType.Init(self)

@@ -1,19 +1,19 @@
 package gfun
 
 type Val struct {
-	gtype Type
+	_type Type
 	data interface{}
 }
 
-func (self *Val) Init(gtype Type, data interface{}) {
-	self.gtype = gtype
+func (self *Val) Init(_type Type, data interface{}) {
+	self._type = _type
 	self.data = data
 }
 
 func (self *Val) Type() Type {
-	return self.gtype
+	return self._type
 }
 
 func (self *Val) Data() (interface{}, error) {
-	return self.gtype.GetVal(self.data)
+	return self._type.GetVal(self.data)
 }

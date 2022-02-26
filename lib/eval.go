@@ -17,8 +17,8 @@ func (self *M) Eval(pc PC) error {
 			return nil
 			
 		case CALL:
-			fmt.Printf("CALL %v\n", op.Reg1())
-			tgt := env.Regs[op.Reg1()]
+			fmt.Printf("CALL %v\n", op.CallTarget())
+			tgt := env.Regs[op.CallTarget()]
 			
 			if tgt.Type() != &self.FunType {
 				return fmt.Errorf("Not callable: %v", tgt)
@@ -93,6 +93,10 @@ func (self *M) Eval(pc PC) error {
 
 		case NOP:
 			pc++
+
+		case RET:
+			f := self.Ret()
+			pc = f.ret
 			
 		default:
 			log.Fatalf("Unknown op code at pc %v: %v (%v)", pc, op.Code(), op)

@@ -39,6 +39,7 @@ const (
 	LOAD_INT1
 	LOAD_INT2
 	NOP
+	RET
 )
 
 func (self *M) EmitStop() {
@@ -47,6 +48,10 @@ func (self *M) EmitStop() {
 
 func (self *M) EmitBranch(cond Reg) *Op {
 	return self.Emit(Op(BRANCH + (cond << OpCodeBits)))
+}
+
+func (self Op) CallTarget() Reg {
+	return self.Reg1()
 }
 
 func (self Op) CallFlags() CallFlags {
@@ -75,12 +80,8 @@ func (self *M) EmitCall(target Reg, flags CallFlags) *Op {
 	return self.Emit(op)
 }
 
-const (
-	OpGotoPcBits = OpCodeBits
-)
-
 func (self Op) GotoPc() PC {
-	return PC(self >> OpGotoPcBits)
+	return PC(self >> OpCodeBits)
 }
 
 func (self *M) EmitGoto(pc PC) *Op {
@@ -111,4 +112,8 @@ func (self *M) EmitLoadInt(dst Reg, val int) *Op {
 
 func (self *M) EmitNop() {
 	self.Emit(NOP)
+}
+
+func (self *M) EmitRet() {
+	self.Emit(RET)
 }

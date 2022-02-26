@@ -6,16 +6,12 @@ import (
 
 const (
 	RegCount = 1 << OpRegBits
-	ArgCount = 8
-	RetCount = 4
 )
 
 type Reg int
 
 type Env struct {	
 	Regs [RegCount]Val
-	Args [ArgCount]Val
-	Rets [RetCount]Val
 
 	outer *Env
 	bindings map[*Sym]Reg
@@ -24,6 +20,13 @@ type Env struct {
 
 func (self *Env) Init(outer *Env) {
 	self.outer = outer
+
+	if outer != nil {
+		self.regCount = outer.regCount
+		copy(self.Regs[:], outer.Regs[:outer.regCount])
+	}
+
+	self.regCount = 1
 }
 
 func (self *Env) FindVal(key *Sym) *Val {

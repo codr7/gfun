@@ -20,3 +20,14 @@ func (self *IntType) BoolVal(val Val) (bool, error) {
 	
 	return v.(int) != 0, nil
 }
+
+func (self *IntType) EmitVal(val Val) error {
+	v, err := val.Data()
+
+	if err != nil {
+		return err
+	}
+	
+	self.m.EmitLoadInt(0, v.(int))
+	return nil
+}
