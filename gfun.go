@@ -12,7 +12,17 @@ func main() {
 
 	m.RootEnv.Regs[1].Init(&m.IntType, 35)
 	m.EmitLoadInt(2, 7)
-	m.EmitInc(1, 2)
+
+	f, err := m.GetFun(m.Sym("+"))
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	targetReg := m.Env().AllocReg()
+	m.RootEnv.Regs[targetReg].Init(&m.FunType, f)
+	
+	m.EmitCall(targetReg, gfun.CallFlags{})
 	m.EmitStop()
 
 	if err := m.Eval(0); err != nil {
@@ -24,3 +34,4 @@ func main() {
 
 	//fmt.Printf("max: %v\n", 2 & ((1 << gfun.OpCodeBits)-1))
 }
+

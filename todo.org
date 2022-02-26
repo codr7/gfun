@@ -1,13 +1,15 @@
-* add + Fun
-** bind in root env
+* add reader
+** add Reader type
+** add id reader
+** add LitForm form
+* add repl
 * add macros
 ** add Macro struct/type
 ** add if-macro
-* add reader
-** add Reader type
 * fib bench
 * add LOAD_BOOL
 ** copy LOAD_INT1
+** implement BoolType.EmitVal
 * add Lib
 ** add abc
 *** move M types

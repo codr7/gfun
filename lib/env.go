@@ -6,6 +6,7 @@ import (
 
 const (
 	RegCount = 1 << OpRegBits
+	ArgCount = 8
 )
 
 type Reg int
@@ -24,9 +25,9 @@ func (self *Env) Init(outer *Env) {
 	if outer != nil {
 		self.regCount = outer.regCount
 		copy(self.Regs[:], outer.Regs[:outer.regCount])
+	} else {
+		self.regCount = ArgCount+1
 	}
-
-	self.regCount = 1
 }
 
 func (self *Env) FindVal(key *Sym) *Val {
@@ -89,8 +90,19 @@ func (self *Env) GetVal(key *Sym) (*Val, error) {
 	return &self.Regs[reg], nil
 }
 
-func (self *Env) AllocReg(key *Sym) (Reg, error) {
+func (self *Env) SetVal(key *Sym, val Val) error {
+	if v := self.FindVal(key); v != nil {
+		return fmt.Errorf("Dup id: %v (%v)", key, v)
+	}
+	
+	reg := self.AllocReg()
+	self.SetReg(key, reg)
+	self.Regs[reg] = val
+	return nil
+}
+
+func (self *Env) AllocReg() Reg {
 	reg := self.regCount
 	self.regCount++
-	return reg, self.SetReg(key, reg)
+	return reg
 }

@@ -5,6 +5,12 @@ type Val struct {
 	data interface{}
 }
 
+func NewVal(_type Type, data interface{}) Val {
+	var self Val
+	self.Init(_type, data)
+	return self
+}
+
 func (self *Val) Init(_type Type, data interface{}) {
 	self._type = _type
 	self.data = data
