@@ -18,10 +18,10 @@ The different layers of the implementation are well separated and may be used se
 
 I intend to keep the implementation simple and small enough to be fun to play around with for educational purposes; which also ensures it stays reasonably general purpose and stable/bug free.
 
-### looking for an experienced Go coder/mentor?
+### support
+Should you wish to support this effort and allow me to spend more of my time and energy on evolving gfun, feel free to [help](https://liberapay.com/andreas7/donate) make that economically feasible.
+
+### Go coder/mentor for hire
 I'm currently available for hire.<br/>
 Remote or relocation within Europe.<br/>
 Send a message to codr7 at protonmail and I'll get back to you asap.
-
-### support
-Should you wish to support this effort and allow me to spend more of my time and energy on evolving gfun, feel free to [help](https://liberapay.com/andreas7/donate) make that economically feasible.
