@@ -2,6 +2,7 @@ package gfun
 
 import (
 	"fmt"
+	"log"
 )
 
 type CallFlags struct {
@@ -11,17 +12,15 @@ type CallFlags struct {
 type FunBody = func(*Fun, CallFlags, PC) (PC, error)
 
 type Fun struct {
-	m *M
 	name *Sym
 	body FunBody
 }
 
-func NewFun(m *M, name *Sym, body FunBody) *Fun {
-	return new(Fun).Init(m, name, body)
+func NewFun(name *Sym, body FunBody) *Fun {
+	return new(Fun).Init(name, body)
 }
 
-func (self *Fun) Init(m *M, name *Sym, body FunBody) *Fun {
-	self.m = m
+func (self *Fun) Init(name *Sym, body FunBody) *Fun {
 	self.name = name
 	self.body = body
 	return self
@@ -31,32 +30,34 @@ func (self *Fun) Call(flags CallFlags, ret PC) (PC, error) {
 	return self.body(self, flags, ret)
 }
 
-func (self *Fun) Emit(in []Form, body Form) (PC, []Form, error) {
-	startPc := self.m.emitPc
+func (self *Fun) Emit(in []Form, body Form, m *M) (PC, []Form, error) {
+	startPc := m.emitPc
 	var err error
 	
-	if in, err = body.Emit(in, self.m); err != nil {
+	if in, err = body.Emit(in, m); err != nil {
 		return -1, nil, err
 	}
 
-	self.m.EmitRet()
+	m.EmitRet()
 	
 	self.body = func(fun *Fun, flags CallFlags, ret PC) (PC, error) {
-		self.m.Call(fun, flags, ret)
+		m.Call(fun, flags, ret)
 		return startPc, nil
 	}
 
 	return startPc, in, nil
 }
 
-func (self *M) BindNewFun(name *Sym, body FunBody) (*Fun, error) {
-	f := NewFun(self, name, body)
+func (self *M) BindNewFun(name *Sym, body FunBody) *Fun {
+	f := NewFun(name, body)
 	
-	if err := self.env.SetVal(name, NewVal(&self.FunType, f)); err != nil {
-		return nil, err
+	if v, err := self.env.SetVal(name); err != nil {
+		log.Fatal(err)
+	} else {
+		v.Init(&self.FunType, f)
 	}
 
-	return f, nil
+	return f
 
 }
 

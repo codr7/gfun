@@ -18,6 +18,12 @@ The different layers of the implementation are well separated and may be used se
 
 I intend to keep the implementation simple and small enough to be fun to play around with for educational purposes; which also ensures it stays reasonably general purpose and stable/bug free.
 
+### limitations
+For performance reasons, the evauluation loop specifies all operations inline, which means that it's impossible to extend the VM with new operations from the outside. Limits on number of operations, number of registers etc. are determined by the bytecode [format](https://github.com/codr7/gfun/blob/main/lib/op.go).
+
+### status
+It's still early days, I'm currently working my way towards calulating the Fibonacci sequence as above to get a comparable performance number on the implementation so far.
+
 ### support
 Should you wish to support this effort and allow me to spend more of my time and energy on evolving gfun, feel free to [help](https://liberapay.com/andreas7/donate) make that economically feasible.
 

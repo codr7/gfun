@@ -59,7 +59,7 @@ func (self *M) Repl(readers []Reader, in io.Reader, out io.Writer) error {
 				if res, err = self.env.Regs[0].Data(); err != nil {
 					return err
 				}
-				
+
 				fmt.Fprintf(out, "%v\n", res)
 			}
 			

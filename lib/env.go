@@ -90,15 +90,14 @@ func (self *Env) GetVal(key *Sym) (*Val, error) {
 	return &self.Regs[reg], nil
 }
 
-func (self *Env) SetVal(key *Sym, val Val) error {
+func (self *Env) SetVal(key *Sym) (*Val, error) {
 	if v := self.FindVal(key); v != nil {
-		return fmt.Errorf("Dup id: %v (%v)", key, v)
+		return nil, fmt.Errorf("Dup id: %v (%v)", key, v)
 	}
 	
 	reg := self.AllocReg()
 	self.SetReg(key, reg)
-	self.Regs[reg] = val
-	return nil
+	return &self.Regs[reg], nil
 }
 
 func (self *Env) AllocReg() Reg {

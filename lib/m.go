@@ -1,6 +1,7 @@
 package gfun
 
 import (
+	"log"
 	"sync"
 )
 
@@ -33,26 +34,40 @@ func (self *M) Init() {
 	self.FunType.Init(self)
 	self.IntType.Init(self)
 	self.NilType.Init(self)
+
+	self.Bind(self.Sym("T")).Init(&self.BoolType, true)
+	self.Bind(self.Sym("F")).Init(&self.BoolType, false)
+	self.Bind(self.Sym("_")).Init(&self.NilType, nil)
 	
-	self.BindNewFun(self.Sym("+"), func(self *Fun, callFlags CallFlags, ret PC) (PC, error) {
+	self.BindNewFun(self.Sym("+"), func(fun *Fun, callFlags CallFlags, ret PC) (PC, error) {
 		var err error
 		var l interface{}
 		
-		if l, err = self.m.env.Regs[1].Data(); err != nil {
+		if l, err = self.env.Regs[1].Data(); err != nil {
 			return -1, err
 		}
 		
 		var r interface{}
 		
-		if r, err = self.m.env.Regs[2].Data(); err != nil {
+		if r, err = self.env.Regs[2].Data(); err != nil {
 			return -1, err
 		}
 		
-		self.m.env.Regs[1].Init(&self.m.IntType, l.(int)+r.(int))
+		self.env.Regs[1].Init(&self.IntType, l.(int)+r.(int))
 		return ret, nil
 	})
 }
 
 func (self *M) Env() *Env {
 	return self.env
+}
+
+func (self *M) Bind(name *Sym) *Val {
+	v, err := self.Env().SetVal(name)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return v
 }

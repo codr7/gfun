@@ -72,6 +72,17 @@ func (self *BoolType) BoolVal(val Val) (bool, error) {
 	return v.(bool), nil
 }
 
+func (self *BoolType) EmitVal(in []Form, val Val) ([]Form, error) {
+	v, err := val.Data()
+
+	if err != nil {
+		return nil, err
+	}
+	
+	self.m.EmitLoadBool(0, v.(bool))
+	return in, nil
+}
+
 type FunType struct {
 	BasicType
 }

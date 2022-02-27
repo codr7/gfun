@@ -1,6 +1,3 @@
-* finish ReadId()
-* add LitForm
-* finish ReadLit()
 * add macros
 ** add Macro struct/type
 ** add outer field/arg
@@ -9,10 +6,13 @@
 ** add BindMacro
 *** always create new (don't use Get)
 * fib bench
-* add LOAD_BOOL
-** copy LOAD_INT1
-** implement BoolType.EmitVal
+* add LOAD_NIL
+** implement NilType.EmitVal
 * add Lib
 ** add abc
 *** move M types
 * add Multi
+** add TargetType.CallVal
+*** use as base for FunType/MultiType
+** change call op to test for TargetType
+** add DISPATCH op

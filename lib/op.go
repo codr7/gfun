@@ -36,6 +36,7 @@ const (
 	CALL
 	GOTO
 	INC
+	LOAD_BOOL
 	LOAD_INT1
 	LOAD_INT2
 	NOP
@@ -90,6 +91,28 @@ func (self *M) EmitGoto(pc PC) *Op {
 
 func (self *M) EmitInc(dst Reg, src Reg) *Op {
 	return self.Emit(Op(INC + (dst << OpCodeBits) + (src << OpReg2Bits)))
+}
+
+const (
+	OpLoadBoolValBits = OpReg2Bits
+)
+
+func (self Op) LoadBoolVal() bool {
+	if v := self >> OpLoadBoolValBits; v == 1 {
+		return true
+	}
+
+	return false
+}
+
+func (self *M) EmitLoadBool(dst Reg, val bool) *Op {
+	v := 0
+
+	if val {
+		v++
+	}
+	
+	return self.Emit(Op(LOAD_BOOL + Op(dst << OpCodeBits) + Op(v << OpLoadBoolValBits)))
 }
 
 const (

@@ -80,6 +80,12 @@ func (self *M) Eval(pc PC) error {
 			l.Init(l.Type(), lv.(int)+rv.(int))
 			pc++
 
+		case LOAD_BOOL:
+			fmt.Printf("LOAD_BOOL %v %v\n", op.Reg1(), op.LoadBoolVal())
+			env.Regs[op.Reg1()].Init(&self.BoolType, op.LoadBoolVal())
+			fmt.Printf("loaded: %v\n", env.Regs[0])
+			pc++
+
 		case LOAD_INT1:
 			fmt.Printf("LOAD_INT1 %v %v\n", op.Reg1(), op.LoadInt1Val())
 			env.Regs[op.Reg1()].Init(&self.IntType, op.LoadInt1Val())
