@@ -31,15 +31,12 @@ func (self *M) Eval(pc PC) error {
 
 			var err error
 			var fun interface{}
-			fun, err = tgt.Data()
 
-			if err != nil {
+			if fun, err = tgt.Data(); err != nil {
 				return err
 			}
 
-			pc, err = fun.(*Fun).Call(pc+1, self)
-
-			if err != nil {
+			if pc, err = fun.(*Fun).Call(pc+1, self); err != nil {
 				return err
 			}
 			
