@@ -39,7 +39,6 @@ const (
 	BRANCH
 	CALL
 	GOTO
-	INC
 	LOAD_BOOL
 	LOAD_FUN
 	LOAD_INT1
@@ -92,10 +91,6 @@ func (self Op) GotoPc() PC {
 
 func (self *M) EmitGoto(pc PC) *Op {
 	return self.Emit(Op(GOTO + (pc << OpCodeBits)))
-}
-
-func (self *M) EmitInc(dst Reg, src Reg) *Op {
-	return self.Emit(Op(INC + (dst << OpCodeBits) + (src << OpReg2Bits)))
 }
 
 /* LoadBool */

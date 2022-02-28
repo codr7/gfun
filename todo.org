@@ -5,7 +5,6 @@
 ** add fun:-macro
 * fib bench
 ** add bench macro
-* trigger INC on +/- int
 * add CALL_I op
 ** rename CALL to CALL_R
 ** take fun ptr as second arg

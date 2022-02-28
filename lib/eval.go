@@ -59,26 +59,6 @@ func (self *M) Eval(pc PC) error {
 			log.Printf("GOTO %v\n", op.GotoPc())			
 			pc = op.GotoPc()
 			
-		case INC:
-			log.Printf("INC %v %v\n", op.Reg1(), op.Reg2())
-			l := &self.env.Regs[op.Reg1()]
-			var lv interface{}
-			var err error
-			
-			if lv, err = l.Data(); err != nil {
-				return err
-			}
-			
-			r := self.env.Regs[op.Reg2()]
-			var rv interface{}
-			
-			if rv, err = r.Data(); err != nil {
-				return err
-			}
-			
-			l.Init(l.Type(), lv.(int)+rv.(int))
-			pc++
-
 		case LOAD_BOOL:
 			log.Printf("LOAD_BOOL %v %v\n", op.Reg1(), op.LoadBoolVal())
 			self.env.Regs[op.Reg1()].Init(&self.BoolType, op.LoadBoolVal())
