@@ -28,7 +28,8 @@ func (self FunArgs) Add(name *Sym, _type Type) FunArgs {
 
 type Fun struct {
 	name *Sym
-	args []FunArg 
+	args [FunArgCount]FunArg
+	argCount int
 	body FunBody
 }
 
@@ -38,7 +39,12 @@ func NewFun(name *Sym, args []FunArg, body FunBody) *Fun {
 
 func (self *Fun) Init(name *Sym, args []FunArg, body FunBody) *Fun {
 	self.name = name
-	self.args = args
+	
+	for i, a := range args {
+		self.args[i] = a
+		self.argCount++
+	}
+
 	self.body = body
 	return self
 }

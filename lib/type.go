@@ -155,7 +155,17 @@ func (self *FunType) EmitVal(val Val, m *M) error {
 }
 
 func (self *FunType) EmitValCall(val Val, args []Form, pos Pos, m *M) error {
-	for i, a := range args {
+	fd, err := val.Data()
+
+	if err != nil {
+		return err
+	}
+
+	f := fd.(*Fun)
+	
+	for i := 0; i < f.argCount; i++ {
+		a := args[i]
+		
 		if err := a.Emit(m); err != nil {
 			return err
 		}
@@ -163,14 +173,9 @@ func (self *FunType) EmitValCall(val Val, args []Form, pos Pos, m *M) error {
 		m.EmitMove(Reg(i+1), 0)
 	}
 
-	f, err := val.Data()
-
-	if err != nil {
-		return err
-	}
 
 	reg := m.Env().AllocReg()
-	m.EmitLoadFun(reg, f.(*Fun))
+	m.EmitLoadFun(reg, f)
 	m.EmitCall(reg, CallFlags{})
 	return nil
 }

@@ -6,7 +6,7 @@ import (
 
 const (
 	RegCount = 1 << OpRegBits
-	ArgCount = 8
+	FunArgCount = 8
 )
 
 type Reg int
@@ -24,9 +24,12 @@ func (self *Env) Init(outer *Env) {
 
 	if outer != nil {
 		self.regCount = outer.regCount
-		copy(self.Regs[:], outer.Regs[:outer.regCount])
+
+		for i := Reg(0); i < outer.regCount; i++ {
+			self.Regs[i] = outer.Regs[i]
+		}
 	} else {
-		self.regCount = ArgCount+1
+		self.regCount = FunArgCount+1
 	}
 }
 
