@@ -6,7 +6,7 @@ import (
 )
 
 type CallFlags struct {
-	Drop, Memo, Tail bool
+	Memo, Tail bool
 }
 
 type FunBody = func(*Fun, CallFlags, PC) (PC, error)
@@ -16,24 +16,30 @@ type FunArg struct {
 	_type Type
 }
 
+type FunArgs []FunArg
+
+func NewFunArgs() FunArgs {
+	return nil
+}
+
+func (self FunArgs) Add(name *Sym, _type Type) FunArgs {
+	 return append(self, FunArg{name: name, _type: _type})
+}
+
 type Fun struct {
 	name *Sym
 	args []FunArg 
 	body FunBody
 }
 
-func NewFun(name *Sym, body FunBody) *Fun {
-	return new(Fun).Init(name, body)
+func NewFun(name *Sym, args []FunArg, body FunBody) *Fun {
+	return new(Fun).Init(name, args, body)
 }
 
-func (self *Fun) Init(name *Sym, body FunBody) *Fun {
+func (self *Fun) Init(name *Sym, args []FunArg, body FunBody) *Fun {
 	self.name = name
+	self.args = args
 	self.body = body
-	return self
-}
-
-func (self *Fun) Arg(name *Sym, _type Type) *Fun {
-	self.args = append(self.args, FunArg{name: name, _type: _type})
 	return self
 }
 
@@ -63,8 +69,8 @@ func (self *Fun) String() string {
 	return fmt.Sprintf("%v()", self.name)
 }
 
-func (self *M) BindNewFun(name *Sym, body FunBody) *Fun {
-	f := NewFun(name, body)
+func (self *M) BindNewFun(name *Sym, args []FunArg, body FunBody) *Fun {
+	f := NewFun(name, args, body)
 	
 	if v, err := self.env.SetVal(name); err != nil {
 		log.Fatal(err)

@@ -16,7 +16,7 @@ type Type interface {
 	Isa(Type) bool
 	BoolVal(Val) (bool, error)
 	EmitVal(Val, *M) error
-	EmitValCall(Val, CallFlags, *M) error
+	EmitValCall(Val, []Form, *M) error
 	DumpVal(Val, io.Writer)
 	String() string
 }
@@ -74,7 +74,7 @@ func (self *BasicType) EmitVal(val Val, m *M) error {
 	return fmt.Errorf("Emit not supported: %v", self)
 }
 
-func (self *BasicType) EmitValCall(val Val, flags CallFlags, m *M) error {
+func (self *BasicType) EmitValCall(val Val, args []Form, m *M) error {
 	return fmt.Errorf("Call not supported: %v", self)
 }
 
@@ -154,7 +154,15 @@ func (self *FunType) EmitVal(val Val, m *M) error {
 	return nil
 }
 
-func (self *FunType) EmitValCall(val Val, flags CallFlags, m *M) error {
+func (self *FunType) EmitValCall(val Val, args []Form, m *M) error {
+	for i, a := range args {
+		if err := a.Emit(m); err != nil {
+			return err
+		}
+
+		m.EmitMove(Reg(i+1), 0)
+	}
+
 	f, err := val.Data()
 
 	if err != nil {
@@ -163,7 +171,7 @@ func (self *FunType) EmitValCall(val Val, flags CallFlags, m *M) error {
 
 	reg := m.Env().AllocReg()
 	m.EmitLoadFun(reg, f.(*Fun))
-	m.EmitCall(reg, flags)
+	m.EmitCall(reg, CallFlags{})
 	return nil
 }
 

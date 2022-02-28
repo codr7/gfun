@@ -4,6 +4,16 @@
 ** add if-macro
 ** add fun:-macro
 * fib bench
+** add bench macro
+* trigger INC on +/- int
+* add CALL_I op
+** rename CALL to CALL_R
+** take fun ptr as second arg
+** replaces load+call
+*** use in call emit
+* add reg-arg to EmitVal
+** use instead of 0
+** use instead of MOVE in Fun emit
 * add user macros
 * add LOAD_NIL
 ** implement NilType.EmitVal

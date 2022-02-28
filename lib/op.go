@@ -65,25 +65,20 @@ func (self Op) CallTarget() Reg {
 
 func (self Op) CallFlags() CallFlags {
 	var flags CallFlags
-	flags.Drop = (self >> OpReg2Bits) & 1 == 1
-	flags.Drop = (self >> (OpReg2Bits+1)) & 1 == 1
-	flags.Drop = (self >> (OpReg2Bits+2)) & 1 == 1
+	flags.Memo = (self >> OpReg2Bits) & 1 == 1
+	flags.Tail = (self >> (OpReg2Bits+1)) & 1 == 1
 	return flags
 }
 
 func (self *M) EmitCall(target Reg, flags CallFlags) *Op {
 	op := Op(CALL + (target << OpCodeBits))
 
-	if flags.Drop {
+	if flags.Memo {
 		op += 1 << OpReg2Bits
 	}
 
-	if flags.Memo {
-		op += 1 << (OpReg2Bits+1)
-	}
-
 	if flags.Tail {
-		op += 1 << (OpReg2Bits+2)
+		op += 1 << (OpReg2Bits+1)
 	}
 
 	return self.Emit(op)
