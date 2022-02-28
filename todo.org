@@ -1,12 +1,14 @@
 * debug fib
 
 (fun: fib [n Int] Int
-  (begin
+  (do
     (dump n)
     (if (< n 2) n (+ (fib (- n 1)) (fib (- n 2)))))))
 
-* fib bench
-** add bench macro
+* add bench macro
+* add dec macro
+** add DEC op
+** modify var in place
 * add CALL_I op
 ** rename CALL to CALL_R
 ** take fun ptr as second arg

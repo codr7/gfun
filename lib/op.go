@@ -147,7 +147,13 @@ const (
 )
 
 func (self Op) LoadInt1Val() int {
-	return int(self >> OpLoadInt1ValBit)
+	v := int(self >> OpLoadInt1ValBit)
+	
+	if v >= OpLoadInt1Max {
+		return v - (OpLoadInt1Max << 1)
+	}
+	
+	return v
 }
 
 func (self *M) EmitLoadInt(dst Reg, val int) *Op {

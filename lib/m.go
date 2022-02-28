@@ -60,8 +60,15 @@ func (self *M) Init() {
 	self.Bind(self.Sym("T")).Init(&self.BoolType, true)
 	self.Bind(self.Sym("F")).Init(&self.BoolType, false)
 	self.Bind(self.Sym("_")).Init(&self.NilType, nil)
+	
+	self.BindNewFun(self.Sym("debug"), nil, &self.BoolType,
+		func(fun *Fun, ret PC, m *M) (PC, error) {
+			self.debug = !self.debug
+			self.env.Regs[0].Init(&m.BoolType, self.debug)
+			return ret, nil
+		})
 
-	self.BindNewMacro(self.Sym("begin"), -1,
+	self.BindNewMacro(self.Sym("do"), -1,
 		func(macro *Macro, args []Form, pos Pos, m *M) error {
 			for _, f := range args {
 				if err := f.Emit(m); err != nil {
@@ -70,13 +77,6 @@ func (self *M) Init() {
 			}
 
 			return nil
-		})
-	
-	self.BindNewFun(self.Sym("debug"), nil, &self.BoolType,
-		func(fun *Fun, ret PC, m *M) (PC, error) {
-			self.debug = !self.debug
-			self.env.Regs[0].Init(&m.BoolType, self.debug)
-			return ret, nil
 		})
 
 	self.BindNewFun(self.Sym("dump"), NewFunArgs().Add(self.Sym("val"), &self.AnyType), nil,
