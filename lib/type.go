@@ -28,7 +28,9 @@ type BasicType struct {
 }
 
 func (self *BasicType) Init(m *M, name *Sym, parents...Type) {
-	self.id = TypeId(len(m.types))
+	self.id = TypeId(m.nextTypeId)
+	m.nextTypeId++
+	
 	self.name = name
 	
 	for _, p := range parents {
@@ -77,7 +79,13 @@ func (self *BasicType) EmitValCall(val Val, flags CallFlags, m *M) error {
 }
 
 func (self *BasicType) DumpVal(val Val, out io.Writer) {
-	fmt.Fprintf(out, "%v", val)
+	v, err := val.Data()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	
+	fmt.Fprintf(out, "%v", v)
 }
 
 func (self *BasicType) String() string {

@@ -1,15 +1,10 @@
-* add ReadCall()
-** (...)
-(+ 35 7)
-
 * add macros
 ** add Macro struct/type
-** add outer field/arg
-** run in sequence
+** add M.BindMacro
 ** add if-macro
-** add BindMacro
-*** always create new (don't use Get)
+** add fun:-macro
 * fib bench
+* add user macros
 * add LOAD_NIL
 ** implement NilType.EmitVal
 * add Lib

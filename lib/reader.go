@@ -26,7 +26,7 @@ func (self ERead) Error() string {
 }
 
 var (
-	defaultReaders = []Reader{ReadWs, ReadInt, ReadId}
+	defaultReaders = []Reader{ReadWs, ReadCall, ReadInt, ReadId}
 )
 
 func DefaultReaders() []Reader {
@@ -43,6 +43,44 @@ func ReadForm(readers []Reader, in *bufio.Reader, pos *Pos, m *M) (Form, error) 
 	}
 	
 	return nil, nil
+}
+
+func ReadCall(readers []Reader, in *bufio.Reader, pos *Pos, m *M) (Form, error) {
+	fpos := *pos
+	var c rune
+	
+	if c, _, _ = in.ReadRune(); c == '(' {
+		pos.Col++
+	} else {
+		in.UnreadRune()
+		return nil, nil
+	}
+
+	var t Form
+	var err error
+
+	if t, err = ReadForm(readers, in, pos, m); err != nil {
+		return nil, err
+	}
+	
+	var as []Form
+
+	for {
+		if a, err := ReadForm(readers, in, pos, m); err != nil {
+			return nil, err
+		} else if a == nil {
+			break
+		} else {
+			as = append(as, a)
+		}
+	}
+
+	if c, _, _ = in.ReadRune(); c != ')' {
+		return nil, NewERead(fpos, "Open call")
+	}
+
+	pos.Col++
+	return NewCallForm(fpos, t, as), nil
 }
 
 func ReadId(readers []Reader, in *bufio.Reader, pos *Pos, m *M) (Form, error) {
