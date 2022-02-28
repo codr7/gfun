@@ -1,4 +1,3 @@
-* add if-macro
 * add fun:-macro
 * fib bench
 ** add bench macro

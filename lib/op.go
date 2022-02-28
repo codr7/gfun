@@ -59,19 +59,24 @@ const (
 )
 
 func (self Op) BranchCond() Reg {
-	return Reg((self >> OpCodeBits) & 1 << OpRegBits)
+	return Reg((self >> OpCodeBits) & ((1 << OpRegBits) - 1))
 }
 
 func (self Op) BranchTruePc() PC {
-	return PC((self >> (OpCodeBits + OpRegBits)) & 1 << OpPcBits)
+	return PC((self >> (OpCodeBits + OpRegBits)) & ((1 << OpPcBits) - 1))
 }
 
 func (self Op) BranchFalsePc() PC {
-	return PC((self >> (OpCodeBits + OpRegBits + OpPcBits)) & 1 << OpPcBits)
+	return PC((self >> (OpCodeBits + OpRegBits + OpPcBits)) & ((1 << OpPcBits) - 1))
+}
+
+func (self *Op) InitBranch(cond Reg, truePc, falsePc PC) *Op {
+	*self = Op(BRANCH + Op(cond << OpCodeBits) + Op(truePc << OpBranchTruePcBits) + Op(falsePc << OpBranchFalsePcBits))
+	return self
 }
 
 func (self *M) EmitBranch(cond Reg, truePc, falsePc PC) *Op {
-	return self.Emit(Op(BRANCH + Op(cond << OpCodeBits) + Op(truePc << OpBranchTruePcBits) + Op(OpBranchFalsePcBits)))
+	return self.Emit(0).InitBranch(cond, truePc, falsePc)
 }
 
 /* Call */
@@ -107,8 +112,13 @@ func (self Op) GotoPc() PC {
 	return PC(self >> OpCodeBits)
 }
 
+func (self *Op) InitGoto(pc PC) *Op {
+	*self = Op(GOTO + (pc << OpCodeBits))
+	return self
+}
+
 func (self *M) EmitGoto(pc PC) *Op {
-	return self.Emit(Op(GOTO + (pc << OpCodeBits)))
+	return self.Emit(0).InitGoto(pc)
 }
 
 /* LoadBool */
@@ -152,7 +162,7 @@ func (self Op) LoadInt1Val() int {
 	return int(self >> OpLoadInt1ValBits)
 }
 
- func (self *M) EmitLoadInt(dst Reg, val int) *Op {
+func (self *M) EmitLoadInt(dst Reg, val int) *Op {
 	if val > OpLoadInt1Max-1 || val < -OpLoadInt1Max {
 		op := self.Emit(Op(LOAD_INT2 + (dst << OpCodeBits)))
 		self.Emit(Op(val))

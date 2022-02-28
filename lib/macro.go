@@ -25,6 +25,10 @@ func (self *Macro) Init(name *Sym, argCount int, body MacroBody) *Macro {
 }
 
 func (self *Macro) Expand(args []Form, pos Pos, m *M) error {
+	if len(args) != self.argCount {
+		return fmt.Errorf("Invalid args for %v: %v", self, args)
+	}
+	
 	return self.body(self, args, pos, m)
 }
 
