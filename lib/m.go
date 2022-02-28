@@ -25,6 +25,7 @@ type M struct {
 	emitPc PC
 	env *Env
 	frame *Frame
+	debug bool
 }
 
 func (self *M) Init() {
