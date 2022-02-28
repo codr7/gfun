@@ -14,7 +14,7 @@ type Type interface {
 	GetVal(interface{}) (interface{}, error)
 	Parents() []Type
 	Isa(Type) bool
-	BoolVal(Val) (bool, error)
+	BoolVal(Val) bool
 	EmitVal(Val, *M) error
 	EmitValCall(Val, []Form, Pos, *M) error
 	DumpVal(Val, io.Writer)
@@ -92,20 +92,45 @@ func (self *BasicType) String() string {
 	return self.name.name
 }
 
+func (self *M) BindType(_type Type) {
+	n := _type.Name()
+	
+	if v := self.env.SetVal(n); v == nil {
+		log.Fatalf("Dup id: %v", n)
+	} else {
+		v.Init(&self.MetaType, _type)
+	}
+
+	self.types[_type.Id()] = _type
+}
+
+func (self *M) GetType(name *Sym) (Type, error) {
+	var err error
+	var v *Val
+	
+	if v, err = self.env.GetVal(name); err != nil {
+		return nil, err
+	}
+
+	var f interface{}
+	
+	if f, err = v.Data(); err != nil {
+		return nil, err
+	}
+
+	return f.(Type), nil
+}
+
+
 /* Bool */
 
 type BoolType struct {
 	BasicType
 }
 
-func (self *BoolType) BoolVal(val Val) (bool, error) {
-	v, err := val.Data()
-
-	if err != nil {
-		return false, err
-	}
-	
-	return v.(bool), nil
+func (self *BoolType) BoolVal(val Val) bool {
+	v, _ := val.Data()
+	return v.(bool)
 }
 
 func (self *BoolType) EmitVal(val Val, m *M) error {
@@ -139,8 +164,8 @@ type FunType struct {
 	BasicType
 }
 
-func (self *FunType) BoolVal(val Val) (bool, error) {
-	return true, nil
+func (self *FunType) BoolVal(val Val) bool {
+	return true
 }
 
 func (self *FunType) EmitVal(val Val, m *M) error {
@@ -170,13 +195,13 @@ func (self *FunType) EmitValCall(val Val, args []Form, pos Pos, m *M) error {
 			return err
 		}
 
-		m.EmitMove(Reg(i+1), 0)
+		m.EmitCopy(Reg(i+1), 0)
 	}
 
 
 	reg := m.Env().AllocReg()
 	m.EmitLoadFun(reg, f)
-	m.EmitCall(reg, CallFlags{})
+	m.EmitCall(reg)
 	return nil
 }
 
@@ -196,14 +221,9 @@ type IntType struct {
 	BasicType
 }
 
-func (self *IntType) BoolVal(val Val) (bool, error) {
-	v, err := val.Data()
-
-	if err != nil {
-		return false, err
-	}
-	
-	return v.(int) != 0, nil
+func (self *IntType) BoolVal(val Val) bool {
+	v, _ := val.Data()
+	return v.(int) != 0
 }
 
 func (self *IntType) EmitVal(val Val, m *M) error {
@@ -223,8 +243,8 @@ type MacroType struct {
 	BasicType
 }
 
-func (self *MacroType) BoolVal(val Val) (bool, error) {
-	return true, nil
+func (self *MacroType) BoolVal(val Val) bool {
+	return true
 }
 
 func (self *MacroType) EmitVal(val Val, m *M) error {
@@ -258,12 +278,75 @@ func (self *MacroType) DumpVal(val Val, out io.Writer) {
 	fmt.Fprintf(out, "(Macro %v)", f.(*Macro).name)
 }
 
+/* Meta */
+
+type MetaType struct {
+	BasicType
+}
+
+func (self *MetaType) BoolVal(val Val) bool {
+	return true
+}
+
+func (self *MetaType) EmitVal(val Val, m *M) error {
+	v, err := val.Data()
+
+	if err != nil {
+		return err
+	}
+	
+	m.EmitLoadType(0, v.(Type))
+	return nil
+}
+
+func (self *MetaType) DumpVal(val Val, out io.Writer) {
+	v, err := val.Data()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	
+	fmt.Fprintf(out, "%v", v.(Type).Name())
+}
+
 /* Nil */
 
 type NilType struct {
 	BasicType
 }
 
-func (self *NilType) BoolVal(val Val) (bool, error) {
-	return false, nil
+func (self *NilType) BoolVal(val Val) bool {
+	return false
+}
+
+/* Var */
+
+type VarType struct {
+	BasicType
+}
+
+func (self *VarType) BoolVal(val Val) bool {
+	log.Fatalf("Var has no boolean rep")
+	return false
+}
+
+func (self *VarType) EmitVal(val Val, m *M) error {
+	v, err := val.Data()
+
+	if err != nil {
+		return err
+	}
+	
+	m.EmitCopy(0, v.(Reg))
+	return nil
+}
+
+func (self *VarType) DumpVal(val Val, out io.Writer) {
+	v, err := val.Data()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	
+	fmt.Fprintf(out, "(Var %v)", v.(Reg))
 }

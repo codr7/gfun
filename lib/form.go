@@ -17,6 +17,10 @@ func (self *BasicForm) Init(pos Pos) {
 	self.pos = pos
 }
 
+func (self *BasicForm) Emit(m *M) error {
+	return fmt.Errorf("Emit not supported: %v", self)
+}
+
 func (self *BasicForm) EmitCall(args []Form, pos Pos, m *M) error {
 	return fmt.Errorf("Call not supported: %v", self)
 }
@@ -108,4 +112,21 @@ func (self *LitForm) Emit(m *M) error {
 
 func (self *LitForm) EmitCall(args []Form, pos Pos, m *M) error {
 	return self.val.Type().EmitValCall(self.val, args, pos, m)
+}
+
+/* Slice */
+
+type SliceForm struct {
+	BasicForm
+	items []Form
+}
+
+func NewSliceForm(pos Pos, items []Form) *SliceForm {
+	return new(SliceForm).Init(pos, items)
+}
+
+func (self *SliceForm) Init(pos Pos, items []Form) *SliceForm {
+	self.BasicForm.Init(pos)
+	self.items = items
+	return self
 }

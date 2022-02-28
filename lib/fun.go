@@ -5,11 +5,7 @@ import (
 	"log"
 )
 
-type CallFlags struct {
-	Memo, Tail bool
-}
-
-type FunBody = func(*Fun, CallFlags, PC, *M) (PC, error)
+type FunBody = func(*Fun, PC, *M) (PC, error)
 
 type FunArg struct {
 	name *Sym
@@ -30,14 +26,15 @@ type Fun struct {
 	name *Sym
 	args [FunArgCount]FunArg
 	argCount int
+	ret Type
 	body FunBody
 }
 
-func NewFun(name *Sym, args []FunArg, body FunBody) *Fun {
-	return new(Fun).Init(name, args, body)
+func NewFun(name *Sym, args []FunArg, ret Type, body FunBody) *Fun {
+	return new(Fun).Init(name, args, ret, body)
 }
 
-func (self *Fun) Init(name *Sym, args []FunArg, body FunBody) *Fun {
+func (self *Fun) Init(name *Sym, args []FunArg, ret Type, body FunBody) *Fun {
 	self.name = name
 	
 	for i, a := range args {
@@ -45,41 +42,52 @@ func (self *Fun) Init(name *Sym, args []FunArg, body FunBody) *Fun {
 		self.argCount++
 	}
 
+	self.ret = ret
 	self.body = body
 	return self
 }
 
-func (self *Fun) Call(flags CallFlags, ret PC, m *M) (PC, error) {
-	return self.body(self, flags, ret, m)
+func (self *Fun) Call(ret PC, m *M) (PC, error) {
+	return self.body(self, ret, m)
 }
 
-func (self *Fun) Emit(body Form, m *M) (PC, error) {
+func (self *Fun) Emit(body Form, m *M) error {
+	env := m.Env()
+	skip := m.Emit(0)
 	startPc := m.emitPc
-	var err error
 	
-	if err = body.Emit(m); err != nil {
-		return -1, err
+	for i := 0; i < self.argCount; i++ {
+		a := self.args[i]
+		reg := env.AllocReg()
+		env.SetReg(a.name, reg)
+		env.Regs[reg].Init(&m.VarType, reg)
+		m.EmitCopy(reg, Reg(i+1))
+	}
+	
+	if err := body.Emit(m); err != nil {
+		return err
 	}
 
 	m.EmitRet()
+	skip.InitGoto(m.emitPc)
 	
-	self.body = func(fun *Fun, flags CallFlags, ret PC, m *M) (PC, error) {
-		m.Call(fun, flags, ret)
+	self.body = func(fun *Fun, ret PC, m *M) (PC, error) {
+		m.Call(fun, ret)
 		return startPc, nil
 	}
 
-	return startPc, nil
+	return nil
 }
 
 func (self *Fun) String() string {
 	return fmt.Sprintf("(Fun %v)", self.name)
 }
 
-func (self *M) BindNewFun(name *Sym, args []FunArg, body FunBody) *Fun {
-	f := NewFun(name, args, body)
+func (self *M) BindNewFun(name *Sym, args []FunArg, ret Type, body FunBody) *Fun {
+	f := NewFun(name, args, ret, body)
 	
-	if v, err := self.env.SetVal(name); err != nil {
-		log.Fatal(err)
+	if v := self.env.SetVal(name); v == nil {
+		log.Fatalf("Dup id: %v", name)
 	} else {
 		v.Init(&self.FunType, f)
 	}
@@ -93,10 +101,6 @@ func (self *M) GetFun(name *Sym) (*Fun, error) {
 	
 	if v, err = self.env.GetVal(name); err != nil {
 		return nil, err
-	}
-
-	if v.Type() != &self.FunType {
-		return nil, fmt.Errorf("Expected Fun: %v", v)
 	}
 
 	var f interface{}

@@ -1,5 +1,4 @@
-* add fun:-macro
-** bind args in Fun emit
+* debug fib
 * fib bench
 ** add bench macro
 * add CALL_I op
@@ -14,8 +13,6 @@
 * typecheck Fun args
 * typecheck Fun ret
 * speed up Isa using static array
-** add LOAD_TYPE
-*** use id
 * add LOAD_SYM
 ** rename m.syms to symLookup
 ** add static array m.syms
@@ -32,3 +29,6 @@
 *** use as base for FunType/MultiType
 ** change call op to test for TargetType
 ** add DISPATCH op
+
+(fun: foo [n Int] Int (+ n n))
+

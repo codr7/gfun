@@ -2,7 +2,7 @@
 
 ```
 (fun: fib [n Int] Int
-  (if (< n 2) n (fib (- n 1))))
+  (if (< n 2) n (+ (fib (- n 1)) (fib (- n 2)))))
 
 (fib 10)
 
@@ -31,6 +31,10 @@ The type of functions.
 The boolean type has two values, `T` and `F`.
 #### Int
 The type of whole numbers.
+#### Macro
+The type of macros.
+#### Meta
+The type of types.
 #### Nil
 The nil type has one value, `_`.
 

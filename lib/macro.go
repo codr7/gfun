@@ -2,7 +2,6 @@ package gfun
 
 import (
 	"fmt"
-	"log"
 )
 
 type MacroBody = func(*Macro, []Form, Pos, *M) error
@@ -37,14 +36,7 @@ func (self *Macro) String() string {
 }
 
 func (self *M) BindNewMacro(name *Sym, argCount int, body MacroBody) *Macro {
-	f := NewMacro(name, argCount, body)
-	
-	if v, err := self.env.SetVal(name); err != nil {
-		log.Fatal(err)
-	} else {
-		v.Init(&self.MacroType, f)
-	}
-
+	f := NewMacro(name, argCount, body)	
+	self.env.SetVal(name).Init(&self.MacroType, f)
 	return f
-
 }

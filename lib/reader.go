@@ -26,7 +26,7 @@ func (self ERead) Error() string {
 }
 
 var (
-	defaultReaders = []Reader{ReadWs, ReadCall, ReadInt, ReadId}
+	defaultReaders = []Reader{ReadWs, ReadCall, ReadSlice, ReadInt, ReadId}
 )
 
 func DefaultReaders() []Reader {
@@ -94,8 +94,7 @@ func ReadId(readers []Reader, in *bufio.Reader, pos *Pos, m *M) (Form, error) {
 		} else if err != nil {
 			return nil, err
 		} else if unicode.IsSpace(c) ||
-			c == '(' || c == ')' || c == '[' || c == ']' ||
-			(buf.Len() > 0 && c == '|') {
+			c == '(' || c == ')' || c == '[' || c == ']' {
 			in.UnreadRune()
 			break
 		} else {
@@ -152,6 +151,37 @@ func ReadInt(readers []Reader, in *bufio.Reader, pos *Pos, m *M) (Form, error) {
 	}
 
 	return NewLitForm(fpos, NewVal(&m.IntType, int(n))), nil
+}
+
+func ReadSlice(readers []Reader, in *bufio.Reader, pos *Pos, m *M) (Form, error) {
+	fpos := *pos
+	var c rune
+	
+	if c, _, _ = in.ReadRune(); c == '[' {
+		pos.Col++
+	} else {
+		in.UnreadRune()
+		return nil, nil
+	}
+
+	var is []Form
+
+	for {
+		if f, err := ReadForm(readers, in, pos, m); err != nil {
+			return nil, err
+		} else if f == nil {
+			break
+		} else {
+			is = append(is, f)
+		}
+	}
+
+	if c, _, _ = in.ReadRune(); c != ']' {
+		return nil, NewERead(fpos, "Open slice")
+	}
+
+	pos.Col++
+	return NewSliceForm(fpos, is), nil
 }
 
 func ReadWs(readers []Reader, in *bufio.Reader, pos *Pos, m *M) (Form, error) {

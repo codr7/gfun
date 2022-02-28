@@ -38,7 +38,7 @@ func (self *M) Eval(pc PC) error {
 			}
 
 			var ret PC
-			ret, err = fun.(*Fun).Call(op.CallFlags(), pc+1, self)
+			ret, err = fun.(*Fun).Call(pc+1, self)
 
 			if err != nil {
 				return err
@@ -51,14 +51,7 @@ func (self *M) Eval(pc PC) error {
 				log.Printf("BRANCH %v %v %v\n", op.BranchCond(), op.BranchTruePc(), op.BranchFalsePc())
 			}
 			
-			cond := self.env.Regs[op.BranchCond()]
-			res, err := cond.Type().BoolVal(cond);
-
-			if err != nil {
-				return err
-			}
-
-			if res {
+			if cond := self.env.Regs[op.BranchCond()]; cond.Type().BoolVal(cond) {
 				pc = op.BranchTruePc()
 			} else {
 				pc = op.BranchFalsePc()
@@ -119,9 +112,19 @@ func (self *M) Eval(pc PC) error {
 			self.env.Regs[op.Reg1()].Init(&self.MacroType, m)
 			pc += 2
 			
-		case MOVE:
+		case LOAD_TYPE:
+			t := self.types[op.LoadTypeId()]
+
 			if (self.debug) {
-				log.Printf("MOVE %v %v\n", op.Reg1(), op.Reg2())
+				log.Printf("LOAD_TYPE %v\n", op.Reg1(), t)
+			}
+
+			self.env.Regs[op.Reg1()].Init(&self.MetaType, t)
+			pc++
+
+		case COPY:
+			if (self.debug) {
+				log.Printf("COPY %v %v\n", op.Reg1(), op.Reg2())
 			}
 			
 			self.env.Regs[op.Reg1()] = self.env.Regs[op.Reg2()]

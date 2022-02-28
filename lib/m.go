@@ -1,11 +1,11 @@
 package gfun
 
 import (
-	"log"
 )
 
 const (
 	OpCount = 1 << OpPcBits
+	TypeCount = 1 << OpTypeIdBits
 )
 
 type PC int
@@ -15,11 +15,14 @@ type M struct {
 	FunType FunType
 	IntType IntType
 	MacroType MacroType
+	MetaType MetaType
 	NilType NilType
+	VarType VarType
 	
 	RootEnv Env
 	
 	syms map[string]*Sym
+	types [TypeCount]Type
 	nextTypeId TypeId
 	ops [OpCount]Op
 	emitPc PC
@@ -37,19 +40,66 @@ func (self *M) Init() {
 	self.FunType.Init(self, self.Sym("Fun"))
 	self.IntType.Init(self, self.Sym("Int"))
 	self.MacroType.Init(self, self.Sym("Macro"))
+	self.MetaType.Init(self, self.Sym("Meta"))
 	self.NilType.Init(self, self.Sym("Nil"))
+	self.VarType.Init(self, self.Sym("Var"))
+
+	self.BindType(&self.BoolType)
+	self.BindType(&self.FunType)
+	self.BindType(&self.IntType)
+	self.BindType(&self.MacroType)
+	self.BindType(&self.MetaType)
+	self.BindType(&self.NilType)
+	self.BindType(&self.VarType)
 	
 	self.Bind(self.Sym("T")).Init(&self.BoolType, true)
 	self.Bind(self.Sym("F")).Init(&self.BoolType, false)
 	self.Bind(self.Sym("_")).Init(&self.NilType, nil)
 
-	self.BindNewFun(self.Sym("debug"), nil,
-		func(fun *Fun, callFlags CallFlags, ret PC, m *M) (PC, error) {
+	self.BindNewFun(self.Sym("debug"), nil, &self.BoolType,
+		func(fun *Fun, ret PC, m *M) (PC, error) {
 			self.debug = !self.debug
 			self.env.Regs[0].Init(&m.BoolType, self.debug)
 			return ret, nil
 		})
 
+	self.BindNewMacro(self.Sym("fun:"), 4,
+		func(macro *Macro, args []Form, pos Pos, m *M) error {
+			var err error
+			id := args[0].(*IdForm).id
+			argForms := args[1].(*SliceForm).items
+			var funArgs FunArgs
+			
+			for i := 0; i < len(argForms); i++ {
+				aid := argForms[i].(*IdForm).id
+				i++
+				atid := argForms[i].(*IdForm).id
+				at, err := self.GetType(atid)
+
+				if err != nil {
+					return err
+				}
+
+				funArgs = funArgs.Add(aid, at)
+			}
+			
+			retId := args[2].(*IdForm).id
+			var ret Type
+
+			if ret, err = m.GetType(retId); err != nil {
+				return err
+			}
+			
+			fun := m.BindNewFun(id, funArgs, ret, nil)
+			body := args[3]			
+
+			if err := fun.Emit(body, m); err != nil {
+				return err
+			}
+
+			return nil
+		})
+	
 	self.BindNewMacro(self.Sym("if"), 3,
 		func(macro *Macro, args []Form, pos Pos, m *M) error {
 			if err := args[0].Emit(m); err != nil {
@@ -75,12 +125,13 @@ func (self *M) Init() {
 			branch.InitBranch(0, truePc, falsePc)
 			return nil
 		})
-	
+
 	self.BindNewFun(self.Sym("+"),
 		NewFunArgs().
 			Add(self.Sym("l"), &self.IntType).
 			Add(self.Sym("r"), &self.IntType),
-		func(fun *Fun, callFlags CallFlags, ret PC, m *M) (PC, error) {
+		&self.IntType,
+		func(fun *Fun, ret PC, m *M) (PC, error) {
 			var err error
 			var l interface{}
 			
@@ -102,7 +153,8 @@ func (self *M) Init() {
 		NewFunArgs().
 			Add(self.Sym("l"), &self.IntType).
 			Add(self.Sym("r"), &self.IntType),
-		func(fun *Fun, callFlags CallFlags, ret PC, m *M) (PC, error) {
+		&self.IntType,
+		func(fun *Fun, ret PC, m *M) (PC, error) {
 			var err error
 			var l interface{}
 			
@@ -124,7 +176,8 @@ func (self *M) Init() {
 		NewFunArgs().
 			Add(self.Sym("l"), &self.IntType).
 			Add(self.Sym("r"), &self.IntType),
-		func(fun *Fun, callFlags CallFlags, ret PC, m *M) (PC, error) {
+		&self.BoolType,
+		func(fun *Fun, ret PC, m *M) (PC, error) {
 			var err error
 			var l interface{}
 			
@@ -148,11 +201,5 @@ func (self *M) Env() *Env {
 }
 
 func (self *M) Bind(name *Sym) *Val {
-	v, err := self.Env().SetVal(name)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return v
+	return self.Env().SetVal(name)
 }

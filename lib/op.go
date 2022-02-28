@@ -11,7 +11,8 @@ const (
 	OpCodeBits = 6
 	OpPcBits = 10
 	OpRegBits = 8
-	OpReg2Bits = OpCodeBits + OpRegBits
+	OpReg2Bit = OpCodeBits + OpRegBits
+	OpTypeIdBits = 10
 )
 
 func (self Op) Code() int {
@@ -19,11 +20,11 @@ func (self Op) Code() int {
 }
 
 func (self Op) Reg1() Reg {
-	return Reg(self & ((1 << OpReg2Bits)-1) >> OpCodeBits)
+	return Reg(self & ((1 << OpReg2Bit)-1) >> OpCodeBits)
 }
 
 func (self Op) Reg2() Reg {
-	return Reg(self & ((1 << (OpReg2Bits+OpRegBits))-1) >> OpReg2Bits)
+	return Reg(self & ((1 << (OpReg2Bit+OpRegBits))-1) >> OpReg2Bit)
 }
 
 func (self *M) Emit(op Op) *Op {
@@ -44,7 +45,8 @@ const (
 	LOAD_INT1
 	LOAD_INT2
 	LOAD_MACRO
-	MOVE
+	LOAD_TYPE
+	COPY
 	NOP
 	RET
 )
@@ -54,8 +56,8 @@ func (self *M) EmitStop() {
 }
 
 const (
-	OpBranchTruePcBits = OpReg2Bits
-	OpBranchFalsePcBits = OpBranchTruePcBits + OpPcBits
+	OpBranchTruePcBit = OpReg2Bit
+	OpBranchFalsePcBit = OpBranchTruePcBit + OpPcBits
 )
 
 func (self Op) BranchCond() Reg {
@@ -63,15 +65,18 @@ func (self Op) BranchCond() Reg {
 }
 
 func (self Op) BranchTruePc() PC {
-	return PC((self >> (OpCodeBits + OpRegBits)) & ((1 << OpPcBits) - 1))
+	return PC((self >> OpBranchTruePcBit) & ((1 << OpPcBits) - 1))
 }
 
 func (self Op) BranchFalsePc() PC {
-	return PC((self >> (OpCodeBits + OpRegBits + OpPcBits)) & ((1 << OpPcBits) - 1))
+	return PC((self >> OpBranchFalsePcBit) & ((1 << OpPcBits) - 1))
 }
 
 func (self *Op) InitBranch(cond Reg, truePc, falsePc PC) *Op {
-	*self = Op(BRANCH + Op(cond << OpCodeBits) + Op(truePc << OpBranchTruePcBits) + Op(falsePc << OpBranchFalsePcBits))
+	*self = Op(BRANCH + Op(cond << OpCodeBits) +
+		Op(truePc << OpBranchTruePcBit) +
+		Op(falsePc << OpBranchFalsePcBit))
+	
 	return self
 }
 
@@ -85,25 +90,8 @@ func (self Op) CallTarget() Reg {
 	return self.Reg1()
 }
 
-func (self Op) CallFlags() CallFlags {
-	var flags CallFlags
-	flags.Memo = (self >> OpReg2Bits) & 1 == 1
-	flags.Tail = (self >> (OpReg2Bits+1)) & 1 == 1
-	return flags
-}
-
-func (self *M) EmitCall(target Reg, flags CallFlags) *Op {
-	op := Op(CALL + (target << OpCodeBits))
-
-	if flags.Memo {
-		op += 1 << OpReg2Bits
-	}
-
-	if flags.Tail {
-		op += 1 << (OpReg2Bits+1)
-	}
-
-	return self.Emit(op)
+func (self *M) EmitCall(target Reg) *Op {
+	return self.Emit(Op(CALL + (target << OpCodeBits)))
 }
 
 /* Goto */
@@ -124,11 +112,11 @@ func (self *M) EmitGoto(pc PC) *Op {
 /* LoadBool */
 
 const (
-	OpLoadBoolValBits = OpReg2Bits
+	OpLoadBoolValBit = OpReg2Bit
 )
 
 func (self Op) LoadBoolVal() bool {
-	if v := self >> OpLoadBoolValBits; v == 1 {
+	if v := self >> OpLoadBoolValBit; v == 1 {
 		return true
 	}
 
@@ -142,7 +130,7 @@ func (self *M) EmitLoadBool(dst Reg, val bool) *Op {
 		v++
 	}
 	
-	return self.Emit(Op(LOAD_BOOL + Op(dst << OpCodeBits) + Op(v << OpLoadBoolValBits)))
+	return self.Emit(Op(LOAD_BOOL + Op(dst << OpCodeBits) + Op(v << OpLoadBoolValBit)))
 }
 
 func (self *M) EmitLoadFun(dst Reg, val *Fun) *Op {
@@ -155,11 +143,11 @@ func (self *M) EmitLoadFun(dst Reg, val *Fun) *Op {
 
 const (
 	OpLoadInt1Max = 1 << (OpBits - OpRegBits - OpCodeBits - 1)
-	OpLoadInt1ValBits = OpReg2Bits
+	OpLoadInt1ValBit = OpReg2Bit
 )
 
 func (self Op) LoadInt1Val() int {
-	return int(self >> OpLoadInt1ValBits)
+	return int(self >> OpLoadInt1ValBit)
 }
 
 func (self *M) EmitLoadInt(dst Reg, val int) *Op {
@@ -169,7 +157,7 @@ func (self *M) EmitLoadInt(dst Reg, val int) *Op {
 		return op
 	}
 
-	return self.Emit(Op(LOAD_INT1 + Op(dst << OpCodeBits) + Op(val << OpLoadInt1ValBits)))
+	return self.Emit(Op(LOAD_INT1 + Op(dst << OpCodeBits) + Op(val << OpLoadInt1ValBit)))
 }
 
 func (self *M) EmitLoadMacro(dst Reg, val *Macro) *Op {
@@ -178,8 +166,20 @@ func (self *M) EmitLoadMacro(dst Reg, val *Macro) *Op {
 	return op
 }
 
-func (self *M) EmitMove(dst Reg, src int) *Op {
-	return self.Emit(Op(MOVE + Op(dst << OpCodeBits) + Op(src << OpReg2Bits)))
+const (
+	OpLoadTypeIdBit = OpReg2Bit
+)
+
+func (self Op) LoadTypeId() TypeId {
+	return TypeId((self >> OpLoadTypeIdBit) & ((1 << OpTypeIdBits) - 1))
+}
+
+func (self *M) EmitLoadType(dst Reg, _type Type) *Op {
+	return self.Emit(Op(LOAD_TYPE + Op(dst << OpCodeBits) + Op(_type.Id() << OpLoadTypeIdBit)))
+}
+
+func (self *M) EmitCopy(dst Reg, src Reg) *Op {
+	return self.Emit(Op(COPY + Op(dst << OpCodeBits) + Op(src << OpReg2Bit)))
 }
 
 func (self *M) EmitNop() {
