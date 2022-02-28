@@ -24,7 +24,7 @@ func (self *Macro) Init(name *Sym, argCount int, body MacroBody) *Macro {
 }
 
 func (self *Macro) Expand(args []Form, pos Pos, m *M) error {
-	if len(args) != self.argCount {
+	if self.argCount != -1 && len(args) != self.argCount {
 		return fmt.Errorf("Invalid args for %v: %v", self, args)
 	}
 	
@@ -37,6 +37,6 @@ func (self *Macro) String() string {
 
 func (self *M) BindNewMacro(name *Sym, argCount int, body MacroBody) *Macro {
 	f := NewMacro(name, argCount, body)	
-	self.env.SetVal(name).Init(&self.MacroType, f)
+	self.env.SetVal(name, false).Init(&self.MacroType, f)
 	return f
 }

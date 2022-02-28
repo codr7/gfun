@@ -37,14 +37,11 @@ func (self *M) Eval(pc PC) error {
 				return err
 			}
 
-			var ret PC
-			ret, err = fun.(*Fun).Call(pc+1, self)
+			pc, err = fun.(*Fun).Call(pc+1, self)
 
 			if err != nil {
 				return err
 			}
-
-			pc = ret
 			
 		case BRANCH:
 			if (self.debug) {

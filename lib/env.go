@@ -22,14 +22,14 @@ type Env struct {
 func (self *Env) Init(outer *Env) {
 	self.outer = outer
 
-	if outer != nil {
+	if outer == nil {
+		self.regCount = FunArgCount+1
+	} else {
 		self.regCount = outer.regCount
 
 		for i := Reg(0); i < outer.regCount; i++ {
 			self.Regs[i] = outer.Regs[i]
 		}
-	} else {
-		self.regCount = FunArgCount+1
 	}
 }
 
@@ -70,10 +70,10 @@ func (self *Env) GetReg(key *Sym) (Reg, error) {
 	return reg, nil
 }
 
-func (self *Env) SetReg(key *Sym, reg Reg) error {
+func (self *Env) SetReg(key *Sym, reg Reg, force bool) error {
 	if self.bindings == nil {
 		self.bindings = make(map[*Sym]Reg)
-	} else {
+	} else if !force {
 		if v, dup := self.bindings[key]; dup {
 			return fmt.Errorf("Dup id: %v (%v)", key, v)
 		}
@@ -93,13 +93,13 @@ func (self *Env) GetVal(key *Sym) (*Val, error) {
 	return &self.Regs[reg], nil
 }
 
-func (self *Env) SetVal(key *Sym) *Val {
+func (self *Env) SetVal(key *Sym, force bool) *Val {
 	if v := self.FindVal(key); v != nil {
-		return nil
+		return v
 	}
 	
 	reg := self.AllocReg()
-	self.SetReg(key, reg)
+	self.SetReg(key, reg, force)
 	return &self.Regs[reg]
 }
 

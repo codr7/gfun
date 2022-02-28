@@ -1,6 +1,8 @@
 package gfun
 
 import (
+	"fmt"
+	"os"
 )
 
 const (
@@ -11,6 +13,7 @@ const (
 type PC int
 
 type M struct {
+	AnyType BasicType
 	BoolType BoolType
 	FunType FunType
 	IntType IntType
@@ -36,14 +39,16 @@ func (self *M) Init() {
 	self.syms = make(map[string]*Sym)
 	self.env = &self.RootEnv
 
-	self.BoolType.Init(self, self.Sym("Bool"))
-	self.FunType.Init(self, self.Sym("Fun"))
-	self.IntType.Init(self, self.Sym("Int"))
-	self.MacroType.Init(self, self.Sym("Macro"))
-	self.MetaType.Init(self, self.Sym("Meta"))
-	self.NilType.Init(self, self.Sym("Nil"))
-	self.VarType.Init(self, self.Sym("Var"))
+	self.AnyType.Init(self, self.Sym("Any"))
+	self.BoolType.Init(self, self.Sym("Bool"), &self.AnyType)
+	self.FunType.Init(self, self.Sym("Fun"), &self.AnyType)
+	self.IntType.Init(self, self.Sym("Int"), &self.AnyType)
+	self.MacroType.Init(self, self.Sym("Macro"), &self.AnyType)
+	self.MetaType.Init(self, self.Sym("Meta"), &self.AnyType)
+	self.NilType.Init(self, self.Sym("Nil"), &self.AnyType)
+	self.VarType.Init(self, self.Sym("Var"), &self.AnyType)
 
+	self.BindType(&self.AnyType)
 	self.BindType(&self.BoolType)
 	self.BindType(&self.FunType)
 	self.BindType(&self.IntType)
@@ -56,10 +61,29 @@ func (self *M) Init() {
 	self.Bind(self.Sym("F")).Init(&self.BoolType, false)
 	self.Bind(self.Sym("_")).Init(&self.NilType, nil)
 
+	self.BindNewMacro(self.Sym("begin"), -1,
+		func(macro *Macro, args []Form, pos Pos, m *M) error {
+			for _, f := range args {
+				if err := f.Emit(m); err != nil {
+					return err
+				}
+			}
+
+			return nil
+		})
+	
 	self.BindNewFun(self.Sym("debug"), nil, &self.BoolType,
 		func(fun *Fun, ret PC, m *M) (PC, error) {
 			self.debug = !self.debug
 			self.env.Regs[0].Init(&m.BoolType, self.debug)
+			return ret, nil
+		})
+
+	self.BindNewFun(self.Sym("dump"), NewFunArgs().Add(self.Sym("val"), &self.AnyType), nil,
+		func(fun *Fun, ret PC, m *M) (PC, error) {
+			v := self.env.Regs[1]
+			v.Type().DumpVal(v, os.Stdout)
+			fmt.Fprintf(os.Stdout, "\n")
 			return ret, nil
 		})
 
@@ -114,7 +138,6 @@ func (self *M) Init() {
 			}
 			
 			skip := m.Emit(0)
-			m.emitPc++
 			falsePc := m.emitPc
 			
 			if err := args[2].Emit(m); err != nil {
@@ -201,5 +224,5 @@ func (self *M) Env() *Env {
 }
 
 func (self *M) Bind(name *Sym) *Val {
-	return self.Env().SetVal(name)
+	return self.Env().SetVal(name, false)
 }

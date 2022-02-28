@@ -17,12 +17,16 @@ func (self *Frame) Init(m *M, fun *Fun, ret PC) *Frame {
 }
 
 func (self *M) Call(fun *Fun, ret PC) *Frame {
-	self.frame = new(Frame).Init(self, fun, ret)
+	f := new(Frame).Init(self, fun, ret)
+	self.frame = f
+	self.env = &f.Env
 	return self.frame
 }
 
 func (self *M) Ret() *Frame {
 	f := self.frame
-	self.frame = self.frame.outer
+	self.frame = f.outer
+	self.env.outer.Regs[0] = self.env.Regs[0]
+	self.env = self.env.outer
 	return f
 }

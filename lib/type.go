@@ -32,6 +32,7 @@ func (self *BasicType) Init(m *M, name *Sym, parents...Type) {
 	m.nextTypeId++
 	
 	self.name = name
+	self.parents = make(map[Type]Type)
 	
 	for _, p := range parents {
 		self.parents[p] = p
@@ -70,6 +71,11 @@ func (self *BasicType) Isa(parent Type) bool {
 	return self.parents[parent] != nil
 }
 
+func (self *BasicType) BoolVal(val Val) bool {
+	log.Fatalf("Val has no boolean rep: %v", self.name)
+	return false
+}
+
 func (self *BasicType) EmitVal(val Val, m *M) error {
 	return fmt.Errorf("Emit not supported: %v", self)
 }
@@ -95,7 +101,7 @@ func (self *BasicType) String() string {
 func (self *M) BindType(_type Type) {
 	n := _type.Name()
 	
-	if v := self.env.SetVal(n); v == nil {
+	if v := self.env.SetVal(n, false); v == nil {
 		log.Fatalf("Dup id: %v", n)
 	} else {
 		v.Init(&self.MetaType, _type)
@@ -323,11 +329,6 @@ func (self *NilType) BoolVal(val Val) bool {
 
 type VarType struct {
 	BasicType
-}
-
-func (self *VarType) BoolVal(val Val) bool {
-	log.Fatalf("Var has no boolean rep")
-	return false
 }
 
 func (self *VarType) EmitVal(val Val, m *M) error {

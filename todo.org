@@ -1,4 +1,10 @@
 * debug fib
+
+(fun: fib [n Int] Int
+  (begin
+    (dump n)
+    (if (< n 2) n (+ (fib (- n 1)) (fib (- n 2)))))))
+
 * fib bench
 ** add bench macro
 * add CALL_I op
@@ -29,6 +35,3 @@
 *** use as base for FunType/MultiType
 ** change call op to test for TargetType
 ** add DISPATCH op
-
-(fun: foo [n Int] Int (+ n n))
-

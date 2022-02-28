@@ -25,17 +25,19 @@ For performance reasons, the evaluation loop specifies operations inline, which 
 It's still early days, I'm currently working my way towards calulating the Fibonacci sequence as above to get a comparable performance number on the implementation so far.
 
 ### types
-#### Fun
+#### Any
+The root type.
+#### Fun < Any
 The type of functions.
-#### Bool
+#### Bool < Any
 The boolean type has two values, `T` and `F`.
-#### Int
+#### Int < Any
 The type of whole numbers.
-#### Macro
+#### Macro < Any
 The type of macros.
-#### Meta
+#### Meta < Any
 The type of types.
-#### Nil
+#### Nil < Any
 The nil type has one value, `_`.
 
 ### support

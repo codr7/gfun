@@ -59,7 +59,7 @@ func (self *Fun) Emit(body Form, m *M) error {
 	for i := 0; i < self.argCount; i++ {
 		a := self.args[i]
 		reg := env.AllocReg()
-		env.SetReg(a.name, reg)
+		env.SetReg(a.name, reg, true)
 		env.Regs[reg].Init(&m.VarType, reg)
 		m.EmitCopy(reg, Reg(i+1))
 	}
@@ -86,7 +86,7 @@ func (self *Fun) String() string {
 func (self *M) BindNewFun(name *Sym, args []FunArg, ret Type, body FunBody) *Fun {
 	f := NewFun(name, args, ret, body)
 	
-	if v := self.env.SetVal(name); v == nil {
+	if v := self.env.SetVal(name, false); v == nil {
 		log.Fatalf("Dup id: %v", name)
 	} else {
 		v.Init(&self.FunType, f)
