@@ -41,8 +41,8 @@ func (self *M) Eval(pc PC) error {
 			pc = ret
 			
 		case BRANCH:
-			log.Printf("BRANCH %v\n", op.Reg1())
-			cond := self.env.Regs[op.Reg1()]
+			log.Printf("BRANCH %v\n", op.BranchCond(), op.BranchTruePc(), op.BranchFalsePc())
+			cond := self.env.Regs[op.BranchCond()]
 			res, err := cond.Type().BoolVal(cond);
 
 			if err != nil {
@@ -50,9 +50,9 @@ func (self *M) Eval(pc PC) error {
 			}
 
 			if res {
-				pc++
+				pc = op.BranchTruePc()
 			} else {
-				pc += 2
+				pc = op.BranchFalsePc()
 			}
 
 		case GOTO:

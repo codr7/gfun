@@ -52,8 +52,25 @@ func (self *M) EmitStop() {
 	self.Emit(STOP)
 }
 
-func (self *M) EmitBranch(cond Reg) *Op {
-	return self.Emit(Op(BRANCH + (cond << OpCodeBits)))
+const (
+	OpBranchTruePcBits = OpReg2Bits
+	OpBranchFalsePcBits = OpBranchTruePcBits + OpPcBits
+)
+
+func (self Op) BranchCond() Reg {
+	return Reg((self >> OpCodeBits) & 1 << OpRegBits)
+}
+
+func (self Op) BranchTruePc() PC {
+	return PC((self >> (OpCodeBits + OpRegBits)) & 1 << OpPcBits)
+}
+
+func (self Op) BranchFalsePc() PC {
+	return PC((self >> (OpCodeBits + OpRegBits + OpPcBits)) & 1 << OpPcBits)
+}
+
+func (self *M) EmitBranch(cond Reg, truePc, falsePc PC) *Op {
+	return self.Emit(Op(BRANCH + Op(cond << OpCodeBits) + Op(truePc << OpBranchTruePcBits) + Op(OpBranchFalsePcBits)))
 }
 
 /* Call */
