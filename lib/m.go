@@ -43,6 +43,13 @@ func (self *M) Init() {
 	self.Bind(self.Sym("F")).Init(&self.BoolType, false)
 	self.Bind(self.Sym("_")).Init(&self.NilType, nil)
 
+	self.BindNewFun(self.Sym("debug"), nil,
+		func(fun *Fun, callFlags CallFlags, ret PC, m *M) (PC, error) {
+			self.debug = !self.debug
+			self.env.Regs[0].Init(&m.BoolType, self.debug)
+			return ret, nil
+		})
+
 	self.BindNewMacro(self.Sym("if"), 3,
 		func(macro *Macro, args []Form, pos Pos, m *M) error {
 			if err := args[0].Emit(m); err != nil {
