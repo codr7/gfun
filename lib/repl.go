@@ -33,19 +33,15 @@ func (self *M) Repl(readers []Reader, in io.Reader, out io.Writer) error {
 			}
 
 			pc := self.emitPc
-			
-			for len(forms) != 0 {
-				f := forms[0]
-				var err error
-				forms, err = f.Emit(forms[1:], self)
-				
-				if err != nil {
+
+			for _, f := range forms {
+				if err := f.Emit(self); err != nil {
 					fmt.Fprintln(out, err)
 					break
 				}
 			}
-
-			if len(forms) == 0 && self.emitPc != pc {
+			
+			if self.emitPc != pc {
 				self.EmitStop()
 				self.env.Regs[0].Init(&self.NilType, nil)
 				
@@ -53,14 +49,9 @@ func (self *M) Repl(readers []Reader, in io.Reader, out io.Writer) error {
 					fmt.Fprintln(out, err)
 				}
 				
-				var err error
-				var res interface{}
-				
-				if res, err = self.env.Regs[0].Data(); err != nil {
-					return err
-				}
-
-				fmt.Fprintf(out, "%v\n", res)
+				resVal := self.env.Regs[0]
+				resVal.Type().DumpVal(resVal, out)
+				fmt.Fprintf(out, "\n")
 			}
 			
 			buf.Reset()

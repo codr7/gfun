@@ -1,5 +1,9 @@
 package gfun
 
+import (
+	"unsafe"
+)
+
 type Op uint64
 
 const (
@@ -37,8 +41,10 @@ const (
 	GOTO
 	INC
 	LOAD_BOOL
+	LOAD_FUN
 	LOAD_INT1
 	LOAD_INT2
+	MOVE
 	NOP
 	RET
 )
@@ -50,6 +56,8 @@ func (self *M) EmitStop() {
 func (self *M) EmitBranch(cond Reg) *Op {
 	return self.Emit(Op(BRANCH + (cond << OpCodeBits)))
 }
+
+/* Call */
 
 func (self Op) CallTarget() Reg {
 	return self.Reg1()
@@ -81,6 +89,8 @@ func (self *M) EmitCall(target Reg, flags CallFlags) *Op {
 	return self.Emit(op)
 }
 
+/* Goto */
+
 func (self Op) GotoPc() PC {
 	return PC(self >> OpCodeBits)
 }
@@ -92,6 +102,8 @@ func (self *M) EmitGoto(pc PC) *Op {
 func (self *M) EmitInc(dst Reg, src Reg) *Op {
 	return self.Emit(Op(INC + (dst << OpCodeBits) + (src << OpReg2Bits)))
 }
+
+/* LoadBool */
 
 const (
 	OpLoadBoolValBits = OpReg2Bits
@@ -115,6 +127,14 @@ func (self *M) EmitLoadBool(dst Reg, val bool) *Op {
 	return self.Emit(Op(LOAD_BOOL + Op(dst << OpCodeBits) + Op(v << OpLoadBoolValBits)))
 }
 
+func (self *M) EmitLoadFun(dst Reg, val *Fun) *Op {
+	op := self.Emit(Op(LOAD_FUN + Op(dst << OpCodeBits)))
+	self.Emit(Op(uintptr(unsafe.Pointer(val))))
+	return op
+}
+
+/* LoadInt */
+
 const (
 	OpLoadInt1Max = 1 << (OpBits - OpRegBits - OpCodeBits - 1)
 	OpLoadInt1ValBits = OpReg2Bits
@@ -124,13 +144,18 @@ func (self Op) LoadInt1Val() int {
 	return int(self >> OpLoadInt1ValBits)
 }
 
-func (self *M) EmitLoadInt(dst Reg, val int) *Op {
+ func (self *M) EmitLoadInt(dst Reg, val int) *Op {
 	if val > OpLoadInt1Max-1 || val < -OpLoadInt1Max {
-		self.Emit(Op(LOAD_INT2 + (dst << OpCodeBits)))
-		return self.Emit(Op(val))
+		op := self.Emit(Op(LOAD_INT2 + (dst << OpCodeBits)))
+		self.Emit(Op(val))
+		return op
 	}
 
 	return self.Emit(Op(LOAD_INT1 + Op(dst << OpCodeBits) + Op(val << OpLoadInt1ValBits)))
+}
+
+func (self *M) EmitMove(dst Reg, src int) *Op {
+	return self.Emit(Op(MOVE + Op(dst << OpCodeBits) + Op(src << OpReg2Bits)))
 }
 
 func (self *M) EmitNop() {

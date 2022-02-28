@@ -2,25 +2,35 @@ package gfun
 
 import (
 	"fmt"
+	"io"
+	"log"
 )
 
+type TypeId int
+
 type Type interface {
+	Id() TypeId
 	Name() *Sym
 	GetVal(interface{}) (interface{}, error)
 	Parents() []Type
 	Isa(Type) bool
 	BoolVal(Val) (bool, error)
-	EmitVal([]Form, Val) ([]Form, error)
+	EmitVal(Val, *M) error
+	EmitValCall(Val, CallFlags, *M) error
+	DumpVal(Val, io.Writer)
+	String() string
 }
 
 type BasicType struct {
-	m *M
+	id TypeId
+	name *Sym
 	parents map[Type]Type
 }
 
-func (self *BasicType) Init(m *M, parents...Type) {
-	self.m = m
-
+func (self *BasicType) Init(m *M, name *Sym, parents...Type) {
+	self.id = TypeId(len(m.types))
+	self.name = name
+	
 	for _, p := range parents {
 		self.parents[p] = p
 		
@@ -28,6 +38,14 @@ func (self *BasicType) Init(m *M, parents...Type) {
 			self.parents[pp] = p
 		}
 	}
+}
+
+func (self *BasicType) Id() TypeId {
+	return self.id
+}
+
+func (self *BasicType) Name() *Sym {
+	return self.name
 }
 
 func (self *BasicType) GetVal(in interface{}) (interface{}, error) {
@@ -50,16 +68,26 @@ func (self *BasicType) Isa(parent Type) bool {
 	return self.parents[parent] != nil
 }
 
-func (self *BasicType) EmitVal(in []Form, val Val) ([]Form, error) {
-	return nil, fmt.Errorf("Emit not supported: %v", self)
+func (self *BasicType) EmitVal(val Val, m *M) error {
+	return fmt.Errorf("Emit not supported: %v", self)
 }
+
+func (self *BasicType) EmitValCall(val Val, flags CallFlags, m *M) error {
+	return fmt.Errorf("Call not supported: %v", self)
+}
+
+func (self *BasicType) DumpVal(val Val, out io.Writer) {
+	fmt.Fprintf(out, "%v", val)
+}
+
+func (self *BasicType) String() string {
+	return self.name.name
+}
+
+/* Bool */
 
 type BoolType struct {
 	BasicType
-}
-
-func (self *BoolType) Name() *Sym {
-	return self.m.Sym("Bool")
 }
 
 func (self *BoolType) BoolVal(val Val) (bool, error) {
@@ -72,35 +100,79 @@ func (self *BoolType) BoolVal(val Val) (bool, error) {
 	return v.(bool), nil
 }
 
-func (self *BoolType) EmitVal(in []Form, val Val) ([]Form, error) {
+func (self *BoolType) EmitVal(val Val, m *M) error {
 	v, err := val.Data()
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 	
-	self.m.EmitLoadBool(0, v.(bool))
-	return in, nil
+	m.EmitLoadBool(0, v.(bool))
+	return nil
 }
+
+func (self *BoolType) DumpVal(val Val, out io.Writer) {
+	v, err := val.Data()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if (v.(bool)) {
+		fmt.Fprintf(out, "T")
+	} else {
+		fmt.Fprintf(out, "F")
+	}
+}
+
+/* Fun */
 
 type FunType struct {
 	BasicType
-}
-
-func (self *FunType) Name() *Sym {
-	return self.m.Sym("Fun")
 }
 
 func (self *FunType) BoolVal(val Val) (bool, error) {
 	return true, nil
 }
 
-type IntType struct {
-	BasicType
+func (self *FunType) EmitVal(val Val, m *M) error {
+	v, err := val.Data()
+
+	if err != nil {
+		return err
+	}
+	
+	m.EmitLoadFun(0, v.(*Fun))
+	return nil
 }
 
-func (self *IntType) Name() *Sym {
-	return self.m.Sym("Int")
+func (self *FunType) EmitValCall(val Val, flags CallFlags, m *M) error {
+	f, err := val.Data()
+
+	if err != nil {
+		return err
+	}
+
+	reg := m.Env().AllocReg()
+	m.EmitLoadFun(reg, f.(*Fun))
+	m.EmitCall(reg, flags)
+	return nil
+}
+
+func (self *FunType) DumpVal(val Val, out io.Writer) {
+	f, err := val.Data()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	
+	fmt.Fprintf(out, "%v()", f.(*Fun).name)
+}
+
+/* Int */
+
+type IntType struct {
+	BasicType
 }
 
 func (self *IntType) BoolVal(val Val) (bool, error) {
@@ -113,23 +185,21 @@ func (self *IntType) BoolVal(val Val) (bool, error) {
 	return v.(int) != 0, nil
 }
 
-func (self *IntType) EmitVal(in []Form, val Val) ([]Form, error) {
+func (self *IntType) EmitVal(val Val, m *M) error {
 	v, err := val.Data()
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 	
-	self.m.EmitLoadInt(0, v.(int))
-	return in, nil
+	m.EmitLoadInt(0, v.(int))
+	return nil
 }
+
+/* Nil */
 
 type NilType struct {
 	BasicType
-}
-
-func (self *NilType) Name() *Sym {
-	return self.m.Sym("Nil")
 }
 
 func (self *NilType) BoolVal(val Val) (bool, error) {

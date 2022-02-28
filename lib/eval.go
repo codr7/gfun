@@ -3,22 +3,21 @@ package gfun
 import (
 	"fmt"
 	"log"
+	"unsafe"
 )
 
 func (self *M) Eval(pc PC) error {
-	env := &self.RootEnv
-	
 	for {
 		op := self.ops[pc]
 		
 		switch op.Code() {
 		case STOP:
-			fmt.Printf("STOP\n")
+			log.Printf("STOP\n")
 			return nil
 			
 		case CALL:
-			fmt.Printf("CALL %v\n", op.CallTarget())
-			tgt := env.Regs[op.CallTarget()]
+			log.Printf("CALL %v\n", op.CallTarget())
+			tgt := self.env.Regs[op.CallTarget()]
 			
 			if tgt.Type() != &self.FunType {
 				return fmt.Errorf("Not callable: %v", tgt)
@@ -42,8 +41,8 @@ func (self *M) Eval(pc PC) error {
 			pc = ret
 			
 		case BRANCH:
-			fmt.Printf("BRANCH %v\n", op.Reg1())
-			cond := env.Regs[op.Reg1()]
+			log.Printf("BRANCH %v\n", op.Reg1())
+			cond := self.env.Regs[op.Reg1()]
 			res, err := cond.Type().BoolVal(cond);
 
 			if err != nil {
@@ -57,12 +56,12 @@ func (self *M) Eval(pc PC) error {
 			}
 
 		case GOTO:
-			fmt.Printf("GOTO %v\n", op.GotoPc())			
+			log.Printf("GOTO %v\n", op.GotoPc())			
 			pc = op.GotoPc()
 			
 		case INC:
-			fmt.Printf("INC %v %v\n", op.Reg1(), op.Reg2())
-			l := &env.Regs[op.Reg1()]
+			log.Printf("INC %v %v\n", op.Reg1(), op.Reg2())
+			l := &self.env.Regs[op.Reg1()]
 			var lv interface{}
 			var err error
 			
@@ -70,7 +69,7 @@ func (self *M) Eval(pc PC) error {
 				return err
 			}
 			
-			r := env.Regs[op.Reg2()]
+			r := self.env.Regs[op.Reg2()]
 			var rv interface{}
 			
 			if rv, err = r.Data(); err != nil {
@@ -81,22 +80,33 @@ func (self *M) Eval(pc PC) error {
 			pc++
 
 		case LOAD_BOOL:
-			fmt.Printf("LOAD_BOOL %v %v\n", op.Reg1(), op.LoadBoolVal())
-			env.Regs[op.Reg1()].Init(&self.BoolType, op.LoadBoolVal())
-			fmt.Printf("loaded: %v\n", env.Regs[0])
+			log.Printf("LOAD_BOOL %v %v\n", op.Reg1(), op.LoadBoolVal())
+			self.env.Regs[op.Reg1()].Init(&self.BoolType, op.LoadBoolVal())
 			pc++
 
+		case LOAD_FUN:
+			d := unsafe.Pointer(uintptr(self.ops[pc+1]))
+			f := (*Fun)(d)
+			log.Printf("LOAD_FUN %v %v\n", op.Reg1(), f)
+			self.env.Regs[op.Reg1()].Init(&self.FunType, f)
+			pc += 2
+
 		case LOAD_INT1:
-			fmt.Printf("LOAD_INT1 %v %v\n", op.Reg1(), op.LoadInt1Val())
-			env.Regs[op.Reg1()].Init(&self.IntType, op.LoadInt1Val())
+			log.Printf("LOAD_INT1 %v %v\n", op.Reg1(), op.LoadInt1Val())
+			self.env.Regs[op.Reg1()].Init(&self.IntType, op.LoadInt1Val())
 			pc++
 
 		case LOAD_INT2:
 			val := int(self.ops[pc+1])
-			fmt.Printf("LOAD_INT2 %v %v\n", op.Reg1(), val)
-			env.Regs[op.Reg1()].Init(&self.IntType, val)
+			log.Printf("LOAD_INT2 %v %v\n", op.Reg1(), val)
+			self.env.Regs[op.Reg1()].Init(&self.IntType, val)
 			pc += 2
 
+		case MOVE:
+			log.Printf("MOVE %v %v\n", op.Reg1(), op.Reg2())
+			self.env.Regs[op.Reg1()] = self.env.Regs[op.Reg2()]
+			pc++
+				
 		case NOP:
 			pc++
 

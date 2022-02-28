@@ -2,7 +2,6 @@ package gfun
 
 import (
 	"log"
-	"sync"
 )
 
 const (
@@ -19,7 +18,8 @@ type M struct {
 	
 	RootEnv Env
 	
-	syms sync.Map
+	syms map[string]*Sym
+	types []Type
 	ops [OpCount]Op
 	emitPc PC
 	env *Env
@@ -28,13 +28,18 @@ type M struct {
 
 func (self *M) Init() {
 	self.RootEnv.Init(nil)
+	self.syms = make(map[string]*Sym)
 	self.env = &self.RootEnv
 
-	self.BoolType.Init(self)
-	self.FunType.Init(self)
-	self.IntType.Init(self)
-	self.NilType.Init(self)
-
+	self.BoolType.Init(self, self.Sym("Bool"))
+	self.types = append(self.types, &self.BoolType)
+	self.FunType.Init(self, self.Sym("Fun"))
+	self.types = append(self.types, &self.FunType)
+	self.IntType.Init(self, self.Sym("Int"))
+	self.types = append(self.types, &self.IntType)
+	self.NilType.Init(self, self.Sym("Nil"))
+	self.types = append(self.types, &self.NilType)
+	
 	self.Bind(self.Sym("T")).Init(&self.BoolType, true)
 	self.Bind(self.Sym("F")).Init(&self.BoolType, false)
 	self.Bind(self.Sym("_")).Init(&self.NilType, nil)
@@ -55,7 +60,9 @@ func (self *M) Init() {
 		
 		self.env.Regs[1].Init(&self.IntType, l.(int)+r.(int))
 		return ret, nil
-	})
+	}).
+		Arg(self.Sym("l"), &self.IntType).
+		Arg(self.Sym("r"), &self.IntType)
 }
 
 func (self *M) Env() *Env {

@@ -11,8 +11,14 @@ type CallFlags struct {
 
 type FunBody = func(*Fun, CallFlags, PC) (PC, error)
 
+type FunArg struct {
+	name *Sym
+	_type Type
+}
+
 type Fun struct {
 	name *Sym
+	args []FunArg 
 	body FunBody
 }
 
@@ -26,16 +32,21 @@ func (self *Fun) Init(name *Sym, body FunBody) *Fun {
 	return self
 }
 
+func (self *Fun) Arg(name *Sym, _type Type) *Fun {
+	self.args = append(self.args, FunArg{name: name, _type: _type})
+	return self
+}
+
 func (self *Fun) Call(flags CallFlags, ret PC) (PC, error) {
 	return self.body(self, flags, ret)
 }
 
-func (self *Fun) Emit(in []Form, body Form, m *M) (PC, []Form, error) {
+func (self *Fun) Emit(in []Form, body Form, m *M) (PC, error) {
 	startPc := m.emitPc
 	var err error
 	
-	if in, err = body.Emit(in, m); err != nil {
-		return -1, nil, err
+	if err = body.Emit(m); err != nil {
+		return -1, err
 	}
 
 	m.EmitRet()
@@ -45,7 +56,11 @@ func (self *Fun) Emit(in []Form, body Form, m *M) (PC, []Form, error) {
 		return startPc, nil
 	}
 
-	return startPc, in, nil
+	return startPc, nil
+}
+
+func (self *Fun) String() string {
+	return fmt.Sprintf("%v()", self.name)
 }
 
 func (self *M) BindNewFun(name *Sym, body FunBody) *Fun {
