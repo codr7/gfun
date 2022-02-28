@@ -16,7 +16,7 @@ type Type interface {
 	Isa(Type) bool
 	BoolVal(Val) (bool, error)
 	EmitVal(Val, *M) error
-	EmitValCall(Val, []Form, *M) error
+	EmitValCall(Val, []Form, Pos, *M) error
 	DumpVal(Val, io.Writer)
 	String() string
 }
@@ -74,7 +74,7 @@ func (self *BasicType) EmitVal(val Val, m *M) error {
 	return fmt.Errorf("Emit not supported: %v", self)
 }
 
-func (self *BasicType) EmitValCall(val Val, args []Form, m *M) error {
+func (self *BasicType) EmitValCall(val Val, args []Form, pos Pos, m *M) error {
 	return fmt.Errorf("Call not supported: %v", self)
 }
 
@@ -154,7 +154,7 @@ func (self *FunType) EmitVal(val Val, m *M) error {
 	return nil
 }
 
-func (self *FunType) EmitValCall(val Val, args []Form, m *M) error {
+func (self *FunType) EmitValCall(val Val, args []Form, pos Pos, m *M) error {
 	for i, a := range args {
 		if err := a.Emit(m); err != nil {
 			return err
@@ -182,7 +182,7 @@ func (self *FunType) DumpVal(val Val, out io.Writer) {
 		log.Fatal(err)
 	}
 	
-	fmt.Fprintf(out, "%v()", f.(*Fun).name)
+	fmt.Fprintf(out, "(Fun %v)", f.(*Fun).name)
 }
 
 /* Int */
@@ -210,6 +210,47 @@ func (self *IntType) EmitVal(val Val, m *M) error {
 	
 	m.EmitLoadInt(0, v.(int))
 	return nil
+}
+
+/* Macro */
+
+type MacroType struct {
+	BasicType
+}
+
+func (self *MacroType) BoolVal(val Val) (bool, error) {
+	return true, nil
+}
+
+func (self *MacroType) EmitVal(val Val, m *M) error {
+	v, err := val.Data()
+
+	if err != nil {
+		return err
+	}
+	
+	m.EmitLoadMacro(0, v.(*Macro))
+	return nil
+}
+
+func (self *MacroType) EmitValCall(val Val, args []Form, pos Pos, m *M) error {
+	v, err := val.Data()
+
+	if err != nil {
+		return err
+	}
+
+	return v.(*Macro).Expand(args, pos, m)
+}
+
+func (self *MacroType) DumpVal(val Val, out io.Writer) {
+	f, err := val.Data()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	
+	fmt.Fprintf(out, "(Macro %v)", f.(*Macro).name)
 }
 
 /* Nil */

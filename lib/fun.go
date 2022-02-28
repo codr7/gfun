@@ -9,7 +9,7 @@ type CallFlags struct {
 	Memo, Tail bool
 }
 
-type FunBody = func(*Fun, CallFlags, PC) (PC, error)
+type FunBody = func(*Fun, CallFlags, PC, *M) (PC, error)
 
 type FunArg struct {
 	name *Sym
@@ -43,11 +43,11 @@ func (self *Fun) Init(name *Sym, args []FunArg, body FunBody) *Fun {
 	return self
 }
 
-func (self *Fun) Call(flags CallFlags, ret PC) (PC, error) {
-	return self.body(self, flags, ret)
+func (self *Fun) Call(flags CallFlags, ret PC, m *M) (PC, error) {
+	return self.body(self, flags, ret, m)
 }
 
-func (self *Fun) Emit(in []Form, body Form, m *M) (PC, error) {
+func (self *Fun) Emit(body Form, m *M) (PC, error) {
 	startPc := m.emitPc
 	var err error
 	
@@ -57,7 +57,7 @@ func (self *Fun) Emit(in []Form, body Form, m *M) (PC, error) {
 
 	m.EmitRet()
 	
-	self.body = func(fun *Fun, flags CallFlags, ret PC) (PC, error) {
+	self.body = func(fun *Fun, flags CallFlags, ret PC, m *M) (PC, error) {
 		m.Call(fun, flags, ret)
 		return startPc, nil
 	}
@@ -66,7 +66,7 @@ func (self *Fun) Emit(in []Form, body Form, m *M) (PC, error) {
 }
 
 func (self *Fun) String() string {
-	return fmt.Sprintf("%v()", self.name)
+	return fmt.Sprintf("(Fun %v)", self.name)
 }
 
 func (self *M) BindNewFun(name *Sym, args []FunArg, body FunBody) *Fun {
@@ -79,7 +79,6 @@ func (self *M) BindNewFun(name *Sym, args []FunArg, body FunBody) *Fun {
 	}
 
 	return f
-
 }
 
 func (self *M) GetFun(name *Sym) (*Fun, error) {

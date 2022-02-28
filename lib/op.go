@@ -43,6 +43,7 @@ const (
 	LOAD_FUN
 	LOAD_INT1
 	LOAD_INT2
+	LOAD_MACRO
 	MOVE
 	NOP
 	RET
@@ -159,6 +160,12 @@ func (self Op) LoadInt1Val() int {
 	}
 
 	return self.Emit(Op(LOAD_INT1 + Op(dst << OpCodeBits) + Op(val << OpLoadInt1ValBits)))
+}
+
+func (self *M) EmitLoadMacro(dst Reg, val *Macro) *Op {
+	op := self.Emit(Op(LOAD_MACRO + Op(dst << OpCodeBits)))
+	self.Emit(Op(uintptr(unsafe.Pointer(val))))
+	return op
 }
 
 func (self *M) EmitMove(dst Reg, src int) *Op {

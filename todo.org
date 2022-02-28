@@ -1,8 +1,5 @@
-* add macros
-** add Macro struct/type
-** add M.BindMacro
-** add if-macro
-** add fun:-macro
+* add if-macro
+* add fun:-macro
 * fib bench
 ** add bench macro
 * add CALL_I op

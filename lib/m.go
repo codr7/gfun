@@ -14,6 +14,7 @@ type M struct {
 	BoolType BoolType
 	FunType FunType
 	IntType IntType
+	MacroType MacroType
 	NilType NilType
 	
 	RootEnv Env
@@ -34,6 +35,7 @@ func (self *M) Init() {
 	self.BoolType.Init(self, self.Sym("Bool"))
 	self.FunType.Init(self, self.Sym("Fun"))
 	self.IntType.Init(self, self.Sym("Int"))
+	self.MacroType.Init(self, self.Sym("Macro"))
 	self.NilType.Init(self, self.Sym("Nil"))
 	
 	self.Bind(self.Sym("T")).Init(&self.BoolType, true)
@@ -44,7 +46,7 @@ func (self *M) Init() {
 		NewFunArgs().
 			Add(self.Sym("l"), &self.IntType).
 			Add(self.Sym("r"), &self.IntType),
-		func(fun *Fun, callFlags CallFlags, ret PC) (PC, error) {
+		func(fun *Fun, callFlags CallFlags, ret PC, m *M) (PC, error) {
 		var err error
 		var l interface{}
 		
@@ -66,7 +68,7 @@ func (self *M) Init() {
 		NewFunArgs().
 			Add(self.Sym("l"), &self.IntType).
 			Add(self.Sym("r"), &self.IntType),
-		func(fun *Fun, callFlags CallFlags, ret PC) (PC, error) {
+		func(fun *Fun, callFlags CallFlags, ret PC, m *M) (PC, error) {
 		var err error
 		var l interface{}
 		
@@ -88,7 +90,7 @@ func (self *M) Init() {
 		NewFunArgs().
 			Add(self.Sym("l"), &self.IntType).
 			Add(self.Sym("r"), &self.IntType),
-		func(fun *Fun, callFlags CallFlags, ret PC) (PC, error) {
+		func(fun *Fun, callFlags CallFlags, ret PC, m *M) (PC, error) {
 		var err error
 		var l interface{}
 		

@@ -32,7 +32,7 @@ func (self *M) Eval(pc PC) error {
 			}
 
 			var ret PC
-			ret, err = fun.(*Fun).Call(op.CallFlags(), pc+1)
+			ret, err = fun.(*Fun).Call(op.CallFlags(), pc+1, self)
 
 			if err != nil {
 				return err
@@ -82,6 +82,13 @@ func (self *M) Eval(pc PC) error {
 			self.env.Regs[op.Reg1()].Init(&self.IntType, val)
 			pc += 2
 
+		case LOAD_MACRO:
+			d := unsafe.Pointer(uintptr(self.ops[pc+1]))
+			m := (*Macro)(d)
+			log.Printf("LOAD_MACRO %v %v\n", op.Reg1(), m)
+			self.env.Regs[op.Reg1()].Init(&self.MacroType, m)
+			pc += 2
+			
 		case MOVE:
 			log.Printf("MOVE %v %v\n", op.Reg1(), op.Reg2())
 			self.env.Regs[op.Reg1()] = self.env.Regs[op.Reg2()]

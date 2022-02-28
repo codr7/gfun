@@ -6,7 +6,7 @@ import (
 
 type Form interface {
 	Emit(*M) error
-	EmitCall([]Form, *M) error
+	EmitCall([]Form, Pos, *M) error
 }
 
 type BasicForm struct {
@@ -17,7 +17,7 @@ func (self *BasicForm) Init(pos Pos) {
 	self.pos = pos
 }
 
-func (self *BasicForm) EmitCall(args []Form, m *M) error {
+func (self *BasicForm) EmitCall(args []Form, pos Pos, m *M) error {
 	return fmt.Errorf("Call not supported: %v", self)
 }
 
@@ -41,7 +41,7 @@ func (self *CallForm) Init(pos Pos, target Form, args []Form) *CallForm {
 }
 
 func (self *CallForm) Emit(m *M) error {
-	if  err := self.target.EmitCall(self.args, m); err != nil {
+	if  err := self.target.EmitCall(self.args, self.pos, m); err != nil {
 		return err
 	}
 
@@ -75,14 +75,14 @@ func (self *IdForm) Emit(m *M) error {
 	return v.Type().EmitVal(*v, m)
 }
 
-func (self *IdForm) EmitCall(args []Form, m *M) error {
+func (self *IdForm) EmitCall(args []Form, pos Pos, m *M) error {
 	v, err := m.env.GetVal(self.id)
 
 	if err != nil {
 		return err
 	}
 
-	return v.Type().EmitValCall(*v, args, m)	
+	return v.Type().EmitValCall(*v, args, pos, m)	
 }
 
 /* Lit */
@@ -106,6 +106,6 @@ func (self *LitForm) Emit(m *M) error {
 	return self.val.Type().EmitVal(self.val, m)
 }
 
-func (self *LitForm) EmitCall(args []Form, m *M) error {
-	return self.val.Type().EmitValCall(self.val, args, m)
+func (self *LitForm) EmitCall(args []Form, pos Pos, m *M) error {
+	return self.val.Type().EmitValCall(self.val, args, pos, m)
 }
