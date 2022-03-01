@@ -23,22 +23,21 @@ func TestSym(t *testing.T) {
 	}
 }
 
-func TestInc(t *testing.T) {
+func TestDec(t *testing.T) {
 	var m gfun.M
 	m.Init()
 
-	m.RootEnv.Regs[1].Init(&m.IntType, 35)
-	m.EmitLoadInt(2, 7)
-	m.EmitInc(1, 2)
+	m.Env().Regs[1].Init(&m.IntType, 49)
+	m.EmitDec(1, 7)
 	m.EmitStop()
 
 	if err := m.Eval(0); err != nil {
 		t.Fatal(err)
 	}
 
-	if v, err := m.RootEnv.Regs[1].Data(); err != nil {
-		t.Fatal(err)
-	} else if v.(int) != 42 {
+	v := m.Env().Regs[1].Data()
+
+	if v.(int) != 42 {
 		t.Fatalf("Wrong result: %v", v)
 	}
 }
@@ -47,7 +46,7 @@ func TestAdd(t *testing.T) {
 	var m gfun.M
 	m.Init()
 
-	m.RootEnv.Regs[1].Init(&m.IntType, 35)
+	m.Env().Regs[1].Init(&m.IntType, 35)
 	m.EmitLoadInt(2, 7)
 
 	f, err := m.GetFun(m.Sym("+"))
@@ -56,19 +55,17 @@ func TestAdd(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	targetReg := m.Env().AllocReg()
-	m.RootEnv.Regs[targetReg].Init(&m.FunType, f)
-	
-	m.EmitCall(targetReg, gfun.CallFlags{})
+	m.EmitEnvPush()
+	m.EmitCallI(f)
 	m.EmitStop()
 
 	if err := m.Eval(0); err != nil {
 		t.Fatal(err)
 	}
 
-	if v, err := m.RootEnv.Regs[1].Data(); err != nil {
-		t.Fatal(err)
-	} else if v.(int) != 42 {
+	v := m.Env().Regs[0].Data()
+
+	if v.(int) != 42 {
 		t.Fatalf("Wrong result: %v", v)
 	}
 }

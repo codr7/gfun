@@ -22,6 +22,16 @@ For performance reasons, the core loop specifies operations inline; which means 
 ### status
 It's still early days, I'm currently profiling and optimizing the implementation guided by initial performance numbers.
 
+### setup
+
+```
+$ cd tests
+$ go test
+$ cd ..
+$ go build gfun.go
+$ ./gfun
+```
+
 ### types
 #### Any
 The root type.
