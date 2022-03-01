@@ -3,7 +3,7 @@
 ```
 (fun: fib [n Int] Int
   (if (< n 2) n (+ (fib (dec n)) (fib (dec n 2)))))
-
+  
 (fib 10)
 
 55

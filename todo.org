@@ -1,5 +1,3 @@
-* bind args directly to reg 1-9 in Fun.Emit
-** skip AllocReg
 * alloc envs statically
 ** change M.env to static array
 ** add envCount

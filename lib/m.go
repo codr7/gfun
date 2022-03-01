@@ -113,15 +113,12 @@ func (self *M) Init() {
 
 	self.BindNewMacro(self.Sym("do"), -1,
 		func(macro *Macro, args []Form, pos Pos, m *M) error {
-			self.EmitEnvPush()
-			
 			for _, f := range args {
 				if err := f.Emit(m); err != nil {
 					return err
 				}
 			}
 
-			self.EmitEnvPop()
 			return nil
 		})
 	
