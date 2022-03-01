@@ -1,6 +1,8 @@
 package gfun
 
 import (
+	"fmt"
+	"io"
 	"unsafe"
 )
 
@@ -15,16 +17,141 @@ const (
 	OpTypeIdBits = 10
 )
 
-func (self Op) Code() int {
-	return int(self & ((1 << OpCodeBits)-1))
+func (self Op) OpCode() int {
+	return int(self & ((1 << OpCodeBits) - 1))
 }
 
 func (self Op) Reg1() Reg {
-	return Reg(self & ((1 << OpReg2Bit)-1) >> OpCodeBits)
+	return Reg((self >> OpCodeBits) & ((1 << OpRegBits) - 1))
 }
 
 func (self Op) Reg2() Reg {
-	return Reg(self & ((1 << (OpReg2Bit+OpRegBits))-1) >> OpReg2Bit)
+	return Reg((self >> OpReg2Bit) & ((1 << OpRegBits) - 1))
+}
+
+func (self Op) ReadsReg(reg Reg) bool {
+	switch self.OpCode() {
+	case BENCH:
+		if self.BenchReps() == reg {
+			return true
+		}
+	case BRANCH:
+		if self.BranchCond() == reg {
+			return true
+		}
+	case CALL:
+		if (reg > 0 && reg < FunArgCount+1) || reg == self.CallTarget(){
+			return true
+		}
+	case CALLI1, CALLI2:
+		if (reg > 0 && reg < FunArgCount+1) {
+			return true
+		}
+	case COPY:
+		if self.Reg2() == reg {
+			return true
+		}
+	case RET:
+		if reg == 0 {
+			return true
+		}
+	default:
+		break
+	}
+
+	return false
+}
+
+func (self Op) WritesReg(reg Reg) bool {
+	switch self.OpCode() {
+	case CALL, CALLI1, CALLI2:
+		if reg == 0 {
+			return true
+		}
+	case COPY:
+		if self.Reg1() == reg {
+			return true
+		}
+	case DEC:
+		if self.DecTarget() == reg {
+			return true
+		}
+	case LOAD_BOOL, LOAD_FUN, LOAD_INT1, LOAD_INT2, LOAD_MACRO, LOAD_TYPE:
+		if self.LoadTarget() == reg {
+			return true
+		}
+	default:
+		break
+	}
+
+	return false
+}
+
+func (self Op) Dump(pc PC, m *M, out io.Writer) PC {
+		switch self.OpCode() {
+		case STOP:
+			fmt.Fprintf(out, "STOP")
+		case CALL:
+			fmt.Fprintf(out, "CALL %v", self.CallTarget())
+		case CALLI1:
+			fmt.Fprintf(out, "CALLI1 %v", self.CallI1Target())
+		case CALLI2:
+			d := unsafe.Pointer(uintptr(m.ops[pc+1]))
+			f := (*Fun)(d)
+			fmt.Fprintf(out, "CALLI2 %v", f)
+			return pc+1
+		case COPY:
+			fmt.Fprintf(out, "COPY %v %v", self.Reg1(), self.Reg2())
+		case BENCH:
+			fmt.Fprintf(out, "BENCH %v", self.BenchReps())
+		case BRANCH:
+			fmt.Fprintf(out, "BRANCH %v %v %v", self.BranchCond(), self.BranchTruePc(), self.BranchFalsePc())
+		case DEC:
+			fmt.Fprintf(out, "DEC %v", self.DecTarget())
+		case ENV_POP:
+			fmt.Fprintf(out, "ENV_POP")
+		case ENV_PUSH:
+			fmt.Fprintf(out, "ENV_PUSH")
+		case GOTO:
+			fmt.Fprintf(out, "GOTO %v", self.GotoPc())
+		case LOAD_BOOL:
+			fmt.Fprintf(out, "LOAD_BOOL %v %v", self.Reg1(), self.LoadBoolVal())
+		case LOAD_FUN:
+			d := unsafe.Pointer(uintptr(m.ops[pc+1]))
+			f := (*Fun)(d)
+			fmt.Fprintf(out, "LOAD_FUN %v %v", self.Reg1(), f)
+			return pc+1
+		case LOAD_INT1:
+			fmt.Fprintf(out, "LOAD_INT1 %v %v", self.Reg1(), self.LoadInt1Val())
+		case LOAD_INT2:
+			val := int(m.ops[pc+1])
+			fmt.Fprintf(out, "LOAD_INT2 %v %v", self.Reg1(), val)
+			return pc+1
+		case LOAD_MACRO:
+			d := unsafe.Pointer(uintptr(m.ops[pc+1]))
+			m := (*Macro)(d)
+			fmt.Fprintf(out, "LOAD_MACRO %v %v", self.Reg1(), m)
+			return pc+1
+		case LOAD_TYPE:
+			t := m.types[self.LoadTypeId()]
+			fmt.Fprintf(out, "LOAD_TYPE %v", self.Reg1(), t)
+		case NOP:
+			fmt.Fprintf(out, "NOP")
+		case RET:
+			fmt.Fprintf(out, "RET")
+		default:
+			break
+		}
+
+	return pc
+}
+
+func (self *M) DumpOps(startPc PC, out io.Writer) {
+	for i := startPc; i < self.emitPc; i++ {
+		fmt.Fprintf(out, "%v ", i)
+		i = self.ops[i].Dump(i, self, out)
+		fmt.Fprintf(out, "\n")
+	}
 }
 
 func (self *M) Emit(op Op) *Op {
@@ -40,6 +167,9 @@ const (
 	BENCH
 	BRANCH
 	CALL
+	CALLI1
+	CALLI2
+	COPY
 	DEC
 	ENV_POP
 	ENV_PUSH
@@ -50,7 +180,6 @@ const (
 	LOAD_INT2
 	LOAD_MACRO
 	LOAD_TYPE
-	COPY
 	NOP
 	RET
 )
@@ -127,6 +256,40 @@ func (self *M) EmitCall(target Reg) *Op {
 	return self.Emit(Op(CALL + (target << OpCodeBits)))
 }
 
+/* CallI */
+
+const (
+	OpCallI1TargetBits = OpBits - OpCodeBits
+	OpCallI1TargetMax = 1 << OpCallI1TargetBits
+)
+
+func (self *M) EmitCallI(target *Fun) *Op {
+	if tp := uintptr(unsafe.Pointer(target)); tp < OpCallI1TargetMax {
+		return self.EmitCallI1(target)
+	}
+	
+	return self.EmitCallI2(target)
+}
+
+func (self Op) CallI1Target() *Fun {
+	return (*Fun)(unsafe.Pointer(uintptr((self >> OpCodeBits))))
+}
+
+func (self *M) EmitCallI1(target *Fun) *Op {
+	tp := uintptr(unsafe.Pointer(target))
+	return self.Emit(Op(CALLI1) + Op(tp << OpCodeBits))
+}
+
+func (self *M) EmitCallI2(target *Fun) *Op {
+	op := self.Emit(Op(CALLI2))
+	self.Emit(Op(uintptr(unsafe.Pointer(target))))
+	return op
+}
+
+func (self *M) EmitCopy(dst Reg, src Reg) *Op {
+	return self.Emit(Op(COPY + Op(dst << OpCodeBits) + Op(src << OpReg2Bit)))
+}
+
 /* Dec */
 
 const (
@@ -168,6 +331,10 @@ func (self *Op) InitGoto(pc PC) *Op {
 
 func (self *M) EmitGoto(pc PC) *Op {
 	return self.Emit(0).InitGoto(pc)
+}
+
+func (self Op) LoadTarget() Reg {
+	return self.Reg1()
 }
 
 /* LoadBool */
@@ -245,12 +412,13 @@ func (self *M) EmitLoadType(dst Reg, _type Type) *Op {
 	return self.Emit(Op(LOAD_TYPE + Op(dst << OpCodeBits) + Op(_type.Id() << OpLoadTypeIdBit)))
 }
 
-func (self *M) EmitCopy(dst Reg, src Reg) *Op {
-	return self.Emit(Op(COPY + Op(dst << OpCodeBits) + Op(src << OpReg2Bit)))
+func (self *Op) InitNop() *Op {
+	*self = NOP
+	return self
 }
 
-func (self *M) EmitNop() {
-	self.Emit(NOP)
+func (self *M) EmitNop() *Op {
+	return self.Emit(0).InitNop()
 }
 
 func (self *M) EmitRet() {

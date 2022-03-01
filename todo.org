@@ -1,6 +1,6 @@
-* fuse copy/load ops
-** find/nop unused load/copy ops until done
-** call uses 1-8
+* track/fuse copies
+** load into final reg
+** solve circular assign in fib
 * fuse consecutive NOP's
 ** replace with GOTO
 * profile
@@ -22,3 +22,5 @@
 *** move M types
 * add Multi
 ** add DISPATCH op
+
+(fun: foo [x Int] Int 42)

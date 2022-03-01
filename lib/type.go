@@ -205,10 +205,7 @@ func (self *FunType) EmitValCall(val Val, args []Form, pos Pos, m *M) error {
 		m.EmitCopy(Reg(i+1), 0)
 	}
 
-
-	reg := m.Env().AllocReg()
-	m.EmitLoadFun(reg, f)
-	m.EmitCall(reg)
+	m.EmitCallI(f)
 	return nil
 }
 
