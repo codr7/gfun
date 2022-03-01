@@ -43,7 +43,6 @@ func (self *M) Repl(readers []Reader, in io.Reader, out io.Writer) error {
 			}
 			
 			if self.emitPc != pc {
-				self.Fuse(pc)
 				self.DumpOps(pc, os.Stdout)
 				self.EmitStop()
 				self.Env().Regs[0].Init(&self.NilType, nil)

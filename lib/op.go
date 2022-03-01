@@ -73,7 +73,7 @@ func (self Op) WritesReg(reg Reg) bool {
 			return true
 		}
 	case DEC:
-		if self.DecTarget() == reg {
+		if self.DecTarget() == reg || reg == 0 {
 			return true
 		}
 	case LOAD_BOOL, LOAD_FUN, LOAD_INT1, LOAD_INT2, LOAD_MACRO, LOAD_TYPE:
@@ -286,8 +286,13 @@ func (self *M) EmitCallI2(target *Fun) *Op {
 	return op
 }
 
+func (self *Op) InitCopy (dst Reg, src Reg) *Op {
+	*self = Op(COPY + Op(dst << OpCodeBits) + Op(src << OpReg2Bit))
+	return self
+}
+
 func (self *M) EmitCopy(dst Reg, src Reg) *Op {
-	return self.Emit(Op(COPY + Op(dst << OpCodeBits) + Op(src << OpReg2Bit)))
+	return self.Emit(0).InitCopy(dst, src)
 }
 
 /* Dec */
@@ -373,6 +378,11 @@ const (
 	OpLoadInt1Max = 1 << (OpBits - OpRegBits - OpCodeBits - 1)
 	OpLoadInt1ValBit = OpReg2Bit
 )
+
+func (self *Op) InitLoadTarget(target Reg) {
+	suffix := *self >> OpCodeBits + OpRegBits
+	*self = Op(self.OpCode()) + Op(target << OpCodeBits) + Op(suffix << OpReg2Bit)
+}
 
 func (self Op) LoadInt1Val() int {
 	v := int(self >> OpLoadInt1ValBit)

@@ -38,15 +38,6 @@ The type of types.
 #### Nil < Any
 The nil type has one value, `_`.
 
-### fusing
-gfun generates code without much regards to efficiency at a higher level, but compensates by analyzing the resulting code for bigger patterns and fusing anything that's not needed.
-
-```
-(fun: foo [x Int] Int 42)
-
-2022/03/01 20:44:44 Fused unused reg at 1: 31
-```
-
 ### performance
 gfun is pretty slow at the moment, around 5 times as slow as Python; I know it's possible to go faster, the remaining task is figuring out what part of the design is causing trouble.
 
