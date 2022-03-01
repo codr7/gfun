@@ -9,6 +9,7 @@
 ** replace with NOP
 * fuse consecutive NOP's
 ** replace with GOTO
+* profile
 * add user macros
 * typecheck Fun args
 * typecheck Fun ret
