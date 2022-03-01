@@ -81,6 +81,22 @@ func (self *M) Eval(pc PC) error {
 				pc = op.BranchFalsePc()
 			}
 
+		case DEC:
+			if (self.debug) {
+				log.Printf("DEC %v\n", op.DecTarget())
+			}
+			
+			t := self.env.Regs[op.DecTarget()]
+			v, err := t.Data()
+
+			if err != nil {
+				return err
+			}
+			
+			t.Init(&self.IntType, v.(int)-op.DecDelta())
+			self.env.Regs[0] = t
+			pc++
+		
 		case ENV_POP:
 			if (self.debug) {
 				log.Printf("ENV_POP\n")

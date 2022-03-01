@@ -87,6 +87,30 @@ func (self *M) Init() {
 			return ret, nil
 		})
 
+	self.BindNewMacro(self.Sym("dec"), 1,
+		func(macro *Macro, args []Form, pos Pos, m *M) error {
+			reg, err := self.env.GetReg(args[0].(*IdForm).id)
+
+			if err != nil {
+				return err
+			}
+
+			d := 1
+			
+			if len(args) > 1 {
+				dv, err := args[1].(*LitForm).val.Data()
+
+				if err != nil {
+					return err
+				}
+
+				d = dv.(int)
+			}	
+				
+			self.EmitDec(reg, d)
+			return nil
+		})
+
 	self.BindNewMacro(self.Sym("do"), -1,
 		func(macro *Macro, args []Form, pos Pos, m *M) error {
 			self.EmitEnvPush()

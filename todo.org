@@ -1,6 +1,11 @@
-* add dec macro
-** add DEC op
-** modify var in place
+* bind args directly to reg 1-9 in Fun.Emit
+** skip AllocReg
+* alloc envs statically
+** change M.env to static array
+** add envCount
+* alloc frames statically
+** change M.frame to static array
+** add frameCount
 * fuse copy/load ops
 ** keep dst-src map
 *** check for src

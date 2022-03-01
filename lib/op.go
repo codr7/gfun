@@ -40,6 +40,7 @@ const (
 	BENCH
 	BRANCH
 	CALL
+	DEC
 	ENV_POP
 	ENV_PUSH
 	GOTO
@@ -124,6 +125,26 @@ func (self Op) CallTarget() Reg {
 
 func (self *M) EmitCall(target Reg) *Op {
 	return self.Emit(Op(CALL + (target << OpCodeBits)))
+}
+
+/* Dec */
+
+const (
+	OpDecTargetBit = OpCodeBits
+	OpDecDeltaBit = OpDecTargetBit + OpRegBits
+	OpDecDeltaBits = OpBits - OpDecDeltaBit
+)
+
+func (self Op) DecTarget() Reg {
+	return Reg((self >> OpDecTargetBit) & ((1 << OpRegBits) - 1))
+}
+
+func (self Op) DecDelta() int {
+	return int((self >> OpDecDeltaBit) & ((1 << OpDecDeltaBits) - 1))
+}
+
+func (self *M) EmitDec(target Reg, delta int) *Op {
+	return self.Emit(Op(DEC + Op(target << OpDecTargetBit) + Op(delta << OpDecDeltaBit)))
 }
 
 func (self *M) EmitEnvPop() {

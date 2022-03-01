@@ -2,7 +2,7 @@
 
 ```
 (fun: fib [n Int] Int
-  (if (< n 2) n (+ (fib (- n 1)) (fib (- n 2)))))
+  (if (< n 2) n (+ (fib (dec n)) (fib (dec n 2)))))
 
 (fib 10)
 
@@ -39,15 +39,15 @@ The type of types.
 The nil type has one value, `_`.
 
 ### performance
-gfun is pretty slow at the moment, around 100 times slower than Python; I know it's possible to go a lot faster, the remaining task is figuring out what part of the design is causing trouble.
+gfun is pretty slow at the moment, around 70 times slower than Python; I know it's possible to go a lot faster, the remaining task is figuring out what part of the design is causing trouble.
 
 ```
 (fun: fib [n Int] Int
-  (if (< n 2) n (+ (fib (- n 1)) (fib (- n 2)))))
+  (if (< n 2) n (+ (fib (dec n)) (fib (dec n 2)))))
 
 (bench 100 (fib 20))
 
-9580
+6825
 ```
 
 ### support
