@@ -86,7 +86,7 @@ func (self *Fun) String() string {
 func (self *M) BindNewFun(name *Sym, args []FunArg, ret Type, body FunBody) *Fun {
 	f := NewFun(name, args, ret, body)
 	
-	if v := self.env.SetVal(name, false); v == nil {
+	if v := self.Env().SetVal(name, false); v == nil {
 		log.Fatalf("Dup id: %v", name)
 	} else {
 		v.Init(&self.FunType, f)
@@ -99,7 +99,7 @@ func (self *M) GetFun(name *Sym) (*Fun, error) {
 	var err error
 	var v *Val
 	
-	if v, err = self.env.GetVal(name); err != nil {
+	if v, err = self.Env().GetVal(name); err != nil {
 		return nil, err
 	}
 

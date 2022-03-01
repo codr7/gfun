@@ -37,6 +37,6 @@ func (self *Macro) String() string {
 
 func (self *M) BindNewMacro(name *Sym, argCount int, body MacroBody) *Macro {
 	f := NewMacro(name, argCount, body)	
-	self.env.SetVal(name, false).Init(&self.MacroType, f)
+	self.Env().SetVal(name, false).Init(&self.MacroType, f)
 	return f
 }

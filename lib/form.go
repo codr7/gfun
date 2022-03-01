@@ -70,7 +70,7 @@ func (self *IdForm) Init(pos Pos, id *Sym) *IdForm {
 }
 
 func (self *IdForm) Emit(m *M) error {
-	v, err := m.env.GetVal(self.id)
+	v, err := m.Env().GetVal(self.id)
 
 	if err != nil {
 		return err
@@ -80,7 +80,7 @@ func (self *IdForm) Emit(m *M) error {
 }
 
 func (self *IdForm) EmitCall(args []Form, pos Pos, m *M) error {
-	v, err := m.env.GetVal(self.id)
+	v, err := m.Env().GetVal(self.id)
 
 	if err != nil {
 		return err

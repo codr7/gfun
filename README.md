@@ -39,7 +39,7 @@ The type of types.
 The nil type has one value, `_`.
 
 ### performance
-gfun is pretty slow at the moment, around 70 times slower than Python; I know it's possible to go a lot faster, the remaining task is figuring out what part of the design is causing trouble.
+gfun is pretty slow at the moment, around 6 times slower than Python; I know it's possible to go faster, the remaining task is figuring out what part of the design is causing trouble.
 
 ```
 (fun: fib [n Int] Int
@@ -47,7 +47,7 @@ gfun is pretty slow at the moment, around 70 times slower than Python; I know it
 
 (bench 100 (fib 20))
 
-6825
+585
 ```
 
 ### support

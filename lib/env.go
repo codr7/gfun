@@ -110,3 +110,25 @@ func (self *Env) AllocReg() Reg {
 	self.regCount++
 	return reg
 }
+
+func (self *M) Env() *Env {
+	return &self.envs[self.envCount-1]
+}
+
+func (self *M) PushEnv() *Env {
+	e := &self.envs[self.envCount]
+
+	if self.envCount > 0 {
+		e.Init(self.Env())
+	}
+	
+	self.envCount++
+	return e
+}
+
+func (self *M) PopEnv() *Env {
+	self.envCount--
+	e := &self.envs[self.envCount]
+	self.Env().Regs[0] = e.Regs[0]
+	return e
+}

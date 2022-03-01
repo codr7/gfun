@@ -101,7 +101,7 @@ func (self *BasicType) String() string {
 func (self *M) BindType(_type Type) {
 	n := _type.Name()
 	
-	if v := self.env.SetVal(n, false); v == nil {
+	if v := self.Env().SetVal(n, false); v == nil {
 		log.Fatalf("Dup id: %v", n)
 	} else {
 		v.Init(&self.MetaType, _type)
@@ -114,7 +114,7 @@ func (self *M) GetType(name *Sym) (Type, error) {
 	var err error
 	var v *Val
 	
-	if v, err = self.env.GetVal(name); err != nil {
+	if v, err = self.Env().GetVal(name); err != nil {
 		return nil, err
 	}
 

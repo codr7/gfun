@@ -43,13 +43,13 @@ func (self *M) Repl(readers []Reader, in io.Reader, out io.Writer) error {
 			
 			if self.emitPc != pc {
 				self.EmitStop()
-				self.env.Regs[0].Init(&self.NilType, nil)
+				self.Env().Regs[0].Init(&self.NilType, nil)
 				
 				if err := self.Eval(pc); err != nil {
 					fmt.Fprintln(out, err)
 				}
 				
-				resVal := self.env.Regs[0]
+				resVal := self.Env().Regs[0]
 
 				if resVal.Type() != &self.NilType {
 					resVal.Type().DumpVal(resVal, out)

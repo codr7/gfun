@@ -1,15 +1,9 @@
-* alloc envs statically
-** change M.env to static array
-** add envCount
 * alloc frames statically
 ** change M.frame to static array
 ** add frameCount
 * fuse copy/load ops
-** keep dst-src map
-*** check for src
-**** update op if exists
-*** remove used regs
-** replace with NOP
+** find/nop unused load/copy ops until done
+** call uses 1-8
 * fuse consecutive NOP's
 ** replace with GOTO
 * profile
@@ -17,6 +11,7 @@
 * typecheck Fun args
 * typecheck Fun ret
 * speed up Isa using static array
+* only push/pop env if fun has args
 * add LOAD_SYM
 ** rename m.syms to symLookup
 ** add static array m.syms

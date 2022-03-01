@@ -24,7 +24,7 @@ func (self *M) Eval(pc PC) error {
 				log.Printf("CALL %v\n", op.CallTarget())
 			}
 			
-			tgt := self.env.Regs[op.CallTarget()]
+			tgt := self.Env().Regs[op.CallTarget()]
 			
 			if tgt.Type() != &self.FunType {
 				return fmt.Errorf("Not callable: %v", tgt)
@@ -44,8 +44,7 @@ func (self *M) Eval(pc PC) error {
 			}
 
 			if pc == retPc {
-				self.env.outer.Regs[0] = self.env.Regs[0]
-				self.env = self.env.outer
+				self.PopEnv()
 			}
 			
 		case BENCH:
@@ -53,7 +52,7 @@ func (self *M) Eval(pc PC) error {
 				log.Printf("BENCH %v\n", op.BenchReps())
 			}
 
-			reps, err := self.env.Regs[op.BenchReps()].Data()
+			reps, err := self.Env().Regs[op.BenchReps()].Data()
 
 			if err != nil {
 				return err
@@ -67,7 +66,7 @@ func (self *M) Eval(pc PC) error {
 				}
 			}
 			
-			self.env.Regs[0].Init(&self.IntType, int(time.Since(start).Milliseconds()))
+			self.Env().Regs[0].Init(&self.IntType, int(time.Since(start).Milliseconds()))
 			pc = op.BenchEndPc()
 			
 		case BRANCH:
@@ -75,7 +74,7 @@ func (self *M) Eval(pc PC) error {
 				log.Printf("BRANCH %v %v %v\n", op.BranchCond(), op.BranchTruePc(), op.BranchFalsePc())
 			}
 			
-			if cond := self.env.Regs[op.BranchCond()]; cond.Type().BoolVal(cond) {
+			if cond := self.Env().Regs[op.BranchCond()]; cond.Type().BoolVal(cond) {
 				pc = op.BranchTruePc()
 			} else {
 				pc = op.BranchFalsePc()
@@ -86,7 +85,7 @@ func (self *M) Eval(pc PC) error {
 				log.Printf("DEC %v\n", op.DecTarget())
 			}
 			
-			t := self.env.Regs[op.DecTarget()]
+			t := self.Env().Regs[op.DecTarget()]
 			v, err := t.Data()
 
 			if err != nil {
@@ -94,7 +93,7 @@ func (self *M) Eval(pc PC) error {
 			}
 			
 			t.Init(&self.IntType, v.(int)-op.DecDelta())
-			self.env.Regs[0] = t
+			self.Env().Regs[0] = t
 			pc++
 		
 		case ENV_POP:
@@ -102,7 +101,7 @@ func (self *M) Eval(pc PC) error {
 				log.Printf("ENV_POP\n")
 			}
 
-			self.env = self.env.outer
+			self.PopEnv()
 			pc++
 
 		case ENV_PUSH:
@@ -110,7 +109,7 @@ func (self *M) Eval(pc PC) error {
 				log.Printf("ENV_PUSH\n")
 			}
 
-			self.env = new(Env).Init(self.env)
+			self.PushEnv()
 			pc++
 
 		case GOTO:
@@ -125,7 +124,7 @@ func (self *M) Eval(pc PC) error {
 				log.Printf("LOAD_BOOL %v %v\n", op.Reg1(), op.LoadBoolVal())
 			}
 			
-			self.env.Regs[op.Reg1()].Init(&self.BoolType, op.LoadBoolVal())
+			self.Env().Regs[op.Reg1()].Init(&self.BoolType, op.LoadBoolVal())
 			pc++
 
 		case LOAD_FUN:
@@ -136,7 +135,7 @@ func (self *M) Eval(pc PC) error {
 				log.Printf("LOAD_FUN %v %v\n", op.Reg1(), f)
 			}
 			
-			self.env.Regs[op.Reg1()].Init(&self.FunType, f)
+			self.Env().Regs[op.Reg1()].Init(&self.FunType, f)
 			pc += 2
 
 		case LOAD_INT1:
@@ -144,7 +143,7 @@ func (self *M) Eval(pc PC) error {
 				log.Printf("LOAD_INT1 %v %v\n", op.Reg1(), op.LoadInt1Val())
 			}
 			
-			self.env.Regs[op.Reg1()].Init(&self.IntType, op.LoadInt1Val())
+			self.Env().Regs[op.Reg1()].Init(&self.IntType, op.LoadInt1Val())
 			pc++
 
 		case LOAD_INT2:
@@ -154,7 +153,7 @@ func (self *M) Eval(pc PC) error {
 				log.Printf("LOAD_INT2 %v %v\n", op.Reg1(), val)
 			}
 			
-			self.env.Regs[op.Reg1()].Init(&self.IntType, val)
+			self.Env().Regs[op.Reg1()].Init(&self.IntType, val)
 			pc += 2
 
 		case LOAD_MACRO:
@@ -165,7 +164,7 @@ func (self *M) Eval(pc PC) error {
 				log.Printf("LOAD_MACRO %v %v\n", op.Reg1(), m)
 			}
 			
-			self.env.Regs[op.Reg1()].Init(&self.MacroType, m)
+			self.Env().Regs[op.Reg1()].Init(&self.MacroType, m)
 			pc += 2
 			
 		case LOAD_TYPE:
@@ -175,7 +174,7 @@ func (self *M) Eval(pc PC) error {
 				log.Printf("LOAD_TYPE %v\n", op.Reg1(), t)
 			}
 
-			self.env.Regs[op.Reg1()].Init(&self.MetaType, t)
+			self.Env().Regs[op.Reg1()].Init(&self.MetaType, t)
 			pc++
 
 		case COPY:
@@ -183,7 +182,7 @@ func (self *M) Eval(pc PC) error {
 				log.Printf("COPY %v %v\n", op.Reg1(), op.Reg2())
 			}
 			
-			self.env.Regs[op.Reg1()] = self.env.Regs[op.Reg2()]
+			self.Env().Regs[op.Reg1()] = self.Env().Regs[op.Reg2()]
 			pc++
 				
 		case NOP:
@@ -200,8 +199,7 @@ func (self *M) Eval(pc PC) error {
 			
 			f := self.Ret()
 			pc = f.ret
-			self.env.outer.Regs[0] = self.env.Regs[0]
-			self.env = self.env.outer
+			self.PopEnv()
 			
 		default:
 			log.Fatalf("Unknown op code at pc %v: %v (%v)", pc, op.Code(), op)

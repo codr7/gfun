@@ -8,6 +8,7 @@ import (
 const (
 	OpCount = 1 << OpPcBits
 	TypeCount = 1 << OpTypeIdBits
+	EnvCount = 1024
 )
 
 type PC int
@@ -22,22 +23,20 @@ type M struct {
 	NilType NilType
 	VarType VarType
 	
-	RootEnv Env
-	
 	syms map[string]*Sym
 	types [TypeCount]Type
 	nextTypeId TypeId
 	ops [OpCount]Op
 	emitPc PC
-	env *Env
+	envs [EnvCount]Env
+	envCount int
 	frame *Frame
 	debug bool
 }
 
 func (self *M) Init() {
-	self.RootEnv.Init(nil)
 	self.syms = make(map[string]*Sym)
-	self.env = &self.RootEnv
+	self.PushEnv()
 
 	self.AnyType.Init(self, self.Sym("Any"))
 	self.BoolType.Init(self, self.Sym("Bool"), &self.AnyType)
@@ -83,13 +82,13 @@ func (self *M) Init() {
 	self.BindNewFun(self.Sym("debug"), nil, &self.BoolType,
 		func(fun *Fun, ret PC, m *M) (PC, error) {
 			self.debug = !self.debug
-			self.env.Regs[0].Init(&m.BoolType, self.debug)
+			self.Env().Regs[0].Init(&m.BoolType, self.debug)
 			return ret, nil
 		})
 
 	self.BindNewMacro(self.Sym("dec"), 1,
 		func(macro *Macro, args []Form, pos Pos, m *M) error {
-			reg, err := self.env.GetReg(args[0].(*IdForm).id)
+			reg, err := self.Env().GetReg(args[0].(*IdForm).id)
 
 			if err != nil {
 				return err
@@ -124,7 +123,7 @@ func (self *M) Init() {
 	
 	self.BindNewFun(self.Sym("dump"), NewFunArgs().Add(self.Sym("val"), &self.AnyType), nil,
 		func(fun *Fun, ret PC, m *M) (PC, error) {
-			v := self.env.Regs[1]
+			v := self.Env().Regs[1]
 			v.Type().DumpVal(v, os.Stdout)
 			fmt.Fprintf(os.Stdout, "\n")
 			return ret, nil
@@ -201,17 +200,17 @@ func (self *M) Init() {
 			var err error
 			var l interface{}
 			
-			if l, err = self.env.Regs[1].Data(); err != nil {
+			if l, err = self.Env().Regs[1].Data(); err != nil {
 				return -1, err
 			}
 			
 			var r interface{}
 			
-			if r, err = self.env.Regs[2].Data(); err != nil {
+			if r, err = self.Env().Regs[2].Data(); err != nil {
 				return -1, err
 			}
 
-			self.env.Regs[0].Init(&self.IntType, l.(int)+r.(int))
+			self.Env().Regs[0].Init(&self.IntType, l.(int)+r.(int))
 			return ret, nil
 		})
 
@@ -224,17 +223,17 @@ func (self *M) Init() {
 			var err error
 			var l interface{}
 			
-			if l, err = self.env.Regs[1].Data(); err != nil {
+			if l, err = self.Env().Regs[1].Data(); err != nil {
 				return -1, err
 			}
 			
 			var r interface{}
 			
-			if r, err = self.env.Regs[2].Data(); err != nil {
+			if r, err = self.Env().Regs[2].Data(); err != nil {
 				return -1, err
 			}
 			
-			self.env.Regs[0].Init(&self.IntType, l.(int)-r.(int))
+			self.Env().Regs[0].Init(&self.IntType, l.(int)-r.(int))
 			return ret, nil
 		})
 
@@ -247,23 +246,19 @@ func (self *M) Init() {
 			var err error
 			var l interface{}
 			
-			if l, err = self.env.Regs[1].Data(); err != nil {
+			if l, err = self.Env().Regs[1].Data(); err != nil {
 				return -1, err
 			}
 			
 			var r interface{}
 			
-			if r, err = self.env.Regs[2].Data(); err != nil {
+			if r, err = self.Env().Regs[2].Data(); err != nil {
 				return -1, err
 			}
 			
-			self.env.Regs[0].Init(&self.BoolType, l.(int) < r.(int))
+			self.Env().Regs[0].Init(&self.BoolType, l.(int) < r.(int))
 			return ret, nil
 		})
-}
-
-func (self *M) Env() *Env {
-	return self.env
 }
 
 func (self *M) Bind(name *Sym) *Val {
