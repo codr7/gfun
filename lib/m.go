@@ -66,13 +66,13 @@ func (self *M) Init() {
 		func(macro *Macro, args []Form, pos Pos, m *M) error {
 			var err error
 			
-			if err = args[0].Emit(m); err != nil {
+			if err = args[0].Emit(0, m); err != nil {
 				return err
 			}
 
 			op := m.Emit(0)
 			
-			if err = args[1].Emit(m); err != nil {
+			if err = args[1].Emit(0, m); err != nil {
 				return err
 			}
 
@@ -115,7 +115,7 @@ func (self *M) Init() {
 	self.BindNewMacro(self.Sym("do"), -1,
 		func(macro *Macro, args []Form, pos Pos, m *M) error {
 			for _, f := range args {
-				if err := f.Emit(m); err != nil {
+				if err := f.Emit(0, m); err != nil {
 					return err
 				}
 			}
@@ -170,21 +170,21 @@ func (self *M) Init() {
 	
 	self.BindNewMacro(self.Sym("if"), 3,
 		func(macro *Macro, args []Form, pos Pos, m *M) error {
-			if err := args[0].Emit(m); err != nil {
+			if err := args[0].Emit(0, m); err != nil {
 				return err
 			}
 			
 			branch := m.Emit(0)
 			truePc := m.emitPc
 
-			if err := args[1].Emit(m); err != nil {
+			if err := args[1].Emit(0, m); err != nil {
 				return err
 			}
 			
 			skip := m.Emit(0)
 			falsePc := m.emitPc
 			
-			if err := args[2].Emit(m); err != nil {
+			if err := args[2].Emit(0, m); err != nil {
 				return err
 			}
 			

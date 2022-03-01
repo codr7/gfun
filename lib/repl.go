@@ -36,7 +36,7 @@ func (self *M) Repl(readers []Reader, in io.Reader, out io.Writer) error {
 			pc := self.emitPc
 
 			for _, f := range forms {
-				if err := f.Emit(self); err != nil {
+				if err := f.Emit(0, self); err != nil {
 					fmt.Fprintln(out, err)
 					break
 				}

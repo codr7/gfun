@@ -64,7 +64,7 @@ func (self *Fun) Emit(body Form, m *M) error {
 		m.EmitCopy(reg, Reg(i+1))
 	}
 	
-	if err := body.Emit(m); err != nil {
+	if err := body.Emit(0, m); err != nil {
 		return err
 	}
 

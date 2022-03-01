@@ -15,7 +15,7 @@ type Type interface {
 	Parents() []Type
 	Isa(Type) bool
 	BoolVal(Val) bool
-	EmitVal(Val, *M) error
+	EmitVal(Val, Reg, *M) error
 	EmitValCall(Val, []Form, Pos, *M) error
 	DumpVal(Val, io.Writer)
 	String() string
@@ -76,7 +76,7 @@ func (self *BasicType) BoolVal(val Val) bool {
 	return false
 }
 
-func (self *BasicType) EmitVal(val Val, m *M) error {
+func (self *BasicType) EmitVal(val Val, reg Reg, m *M) error {
 	return fmt.Errorf("Emit not supported: %v", self)
 }
 
@@ -139,14 +139,14 @@ func (self *BoolType) BoolVal(val Val) bool {
 	return v.(bool)
 }
 
-func (self *BoolType) EmitVal(val Val, m *M) error {
+func (self *BoolType) EmitVal(val Val, reg Reg, m *M) error {
 	v, err := val.Data()
 
 	if err != nil {
 		return err
 	}
 	
-	m.EmitLoadBool(0, v.(bool))
+	m.EmitLoadBool(reg, v.(bool))
 	return nil
 }
 
@@ -174,14 +174,14 @@ func (self *FunType) BoolVal(val Val) bool {
 	return true
 }
 
-func (self *FunType) EmitVal(val Val, m *M) error {
+func (self *FunType) EmitVal(val Val, reg Reg, m *M) error {
 	v, err := val.Data()
 
 	if err != nil {
 		return err
 	}
 	
-	m.EmitLoadFun(0, v.(*Fun))
+	m.EmitLoadFun(reg, v.(*Fun))
 	return nil
 }
 
@@ -198,11 +198,9 @@ func (self *FunType) EmitValCall(val Val, args []Form, pos Pos, m *M) error {
 	for i := 0; i < f.argCount; i++ {
 		a := args[i]
 		
-		if err := a.Emit(m); err != nil {
+		if err := a.Emit(Reg(i+1), m); err != nil {
 			return err
 		}
-
-		m.EmitCopy(Reg(i+1), 0)
 	}
 
 	m.EmitCallI(f)
@@ -230,14 +228,14 @@ func (self *IntType) BoolVal(val Val) bool {
 	return v.(int) != 0
 }
 
-func (self *IntType) EmitVal(val Val, m *M) error {
+func (self *IntType) EmitVal(val Val, reg Reg, m *M) error {
 	v, err := val.Data()
 
 	if err != nil {
 		return err
 	}
 	
-	m.EmitLoadInt(0, v.(int))
+	m.EmitLoadInt(reg, v.(int))
 	return nil
 }
 
@@ -251,14 +249,14 @@ func (self *MacroType) BoolVal(val Val) bool {
 	return true
 }
 
-func (self *MacroType) EmitVal(val Val, m *M) error {
+func (self *MacroType) EmitVal(val Val, reg Reg, m *M) error {
 	v, err := val.Data()
 
 	if err != nil {
 		return err
 	}
 	
-	m.EmitLoadMacro(0, v.(*Macro))
+	m.EmitLoadMacro(reg, v.(*Macro))
 	return nil
 }
 
@@ -292,14 +290,14 @@ func (self *MetaType) BoolVal(val Val) bool {
 	return true
 }
 
-func (self *MetaType) EmitVal(val Val, m *M) error {
+func (self *MetaType) EmitVal(val Val, reg Reg, m *M) error {
 	v, err := val.Data()
 
 	if err != nil {
 		return err
 	}
 	
-	m.EmitLoadType(0, v.(Type))
+	m.EmitLoadType(reg, v.(Type))
 	return nil
 }
 
@@ -333,14 +331,14 @@ type VarType struct {
 	BasicType
 }
 
-func (self *VarType) EmitVal(val Val, m *M) error {
+func (self *VarType) EmitVal(val Val, reg Reg, m *M) error {
 	v, err := val.Data()
 
 	if err != nil {
 		return err
 	}
 	
-	m.EmitCopy(0, v.(Reg))
+	m.EmitCopy(reg, v.(Reg))
 	return nil
 }
 

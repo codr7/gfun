@@ -5,7 +5,7 @@ import (
 )
 
 type Form interface {
-	Emit(*M) error
+	Emit(Reg, *M) error
 	EmitCall([]Form, Pos, *M) error
 }
 
@@ -17,7 +17,7 @@ func (self *BasicForm) Init(pos Pos) {
 	self.pos = pos
 }
 
-func (self *BasicForm) Emit(m *M) error {
+func (self *BasicForm) Emit(reg Reg, m *M) error {
 	return fmt.Errorf("Emit not supported: %v", self)
 }
 
@@ -44,11 +44,15 @@ func (self *CallForm) Init(pos Pos, target Form, args []Form) *CallForm {
 	return self
 }
 
-func (self *CallForm) Emit(m *M) error {
+func (self *CallForm) Emit(reg Reg, m *M) error {
 	if  err := self.target.EmitCall(self.args, self.pos, m); err != nil {
 		return err
 	}
 
+	if reg != 0 {
+		m.EmitCopy(reg, 0)
+	}
+	
 	return nil
 }
 
@@ -69,14 +73,14 @@ func (self *IdForm) Init(pos Pos, id *Sym) *IdForm {
 	return self
 }
 
-func (self *IdForm) Emit(m *M) error {
+func (self *IdForm) Emit(reg Reg, m *M) error {
 	v, err := m.Env().GetVal(self.id)
 
 	if err != nil {
 		return err
 	}
 
-	return v.Type().EmitVal(*v, m)
+	return v.Type().EmitVal(*v, reg, m)
 }
 
 func (self *IdForm) EmitCall(args []Form, pos Pos, m *M) error {
@@ -106,8 +110,8 @@ func (self *LitForm) Init(pos Pos, val Val) *LitForm {
 	return self
 }
 
-func (self *LitForm) Emit(m *M) error {
-	return self.val.Type().EmitVal(self.val, m)
+func (self *LitForm) Emit(reg Reg, m *M) error {
+	return self.val.Type().EmitVal(self.val, reg, m)
 }
 
 func (self *LitForm) EmitCall(args []Form, pos Pos, m *M) error {
