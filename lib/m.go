@@ -61,6 +61,25 @@ func (self *M) Init() {
 	self.Bind(self.Sym("F")).Init(&self.BoolType, false)
 	self.Bind(self.Sym("_")).Init(&self.NilType, nil)
 	
+	self.BindNewMacro(self.Sym("bench"), 2,
+		func(macro *Macro, args []Form, pos Pos, m *M) error {
+			var err error
+			
+			if err = args[0].Emit(m); err != nil {
+				return err
+			}
+
+			op := m.Emit(0)
+			
+			if err = args[1].Emit(m); err != nil {
+				return err
+			}
+
+			m.EmitStop()
+			op.InitBench(0, m.emitPc)
+			return nil
+		})
+
 	self.BindNewFun(self.Sym("debug"), nil, &self.BoolType,
 		func(fun *Fun, ret PC, m *M) (PC, error) {
 			self.debug = !self.debug
@@ -70,15 +89,18 @@ func (self *M) Init() {
 
 	self.BindNewMacro(self.Sym("do"), -1,
 		func(macro *Macro, args []Form, pos Pos, m *M) error {
+			self.EmitEnvPush()
+			
 			for _, f := range args {
 				if err := f.Emit(m); err != nil {
 					return err
 				}
 			}
 
+			self.EmitEnvPop()
 			return nil
 		})
-
+	
 	self.BindNewFun(self.Sym("dump"), NewFunArgs().Add(self.Sym("val"), &self.AnyType), nil,
 		func(fun *Fun, ret PC, m *M) (PC, error) {
 			v := self.env.Regs[1]

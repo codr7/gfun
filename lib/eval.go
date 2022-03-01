@@ -3,6 +3,7 @@ package gfun
 import (
 	"fmt"
 	"log"
+	"time"
 	"unsafe"
 )
 
@@ -46,6 +47,28 @@ func (self *M) Eval(pc PC) error {
 				self.env.outer.Regs[0] = self.env.Regs[0]
 				self.env = self.env.outer
 			}
+			
+		case BENCH:
+			if (self.debug) {
+				log.Printf("BENCH %v\n", op.BenchReps())
+			}
+
+			reps, err := self.env.Regs[op.BenchReps()].Data()
+
+			if err != nil {
+				return err
+			}
+
+			start := time.Now()
+			
+			for i := 0; i < reps.(int); i++ {
+				if err := self.Eval(pc+1); err != nil {
+					return err
+				}
+			}
+			
+			self.env.Regs[0].Init(&self.IntType, int(time.Since(start).Milliseconds()))
+			pc = op.BenchEndPc()
 			
 		case BRANCH:
 			if (self.debug) {

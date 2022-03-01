@@ -1,20 +1,14 @@
-* add bench macro
 * add dec macro
 ** add DEC op
 ** modify var in place
-* add CALL_I op
-** rename CALL to CALL_R
-** take fun ptr as second arg
-** replaces load+call
-*** use in call emit
-* add reg-arg to EmitVal
-** use instead of 0
-** use instead of MOVE in Fun emit
-* fuse copy ops
+* fuse copy/load ops
 ** keep dst-src map
 *** check for src
 **** update op if exists
 *** remove used regs
+** replace with NOP
+* fuse consecutive NOP's
+** replace with GOTO
 * add user macros
 * typecheck Fun args
 * typecheck Fun ret
@@ -31,7 +25,4 @@
 ** add abc
 *** move M types
 * add Multi
-** add TargetType.CallVal
-*** use as base for FunType/MultiType
-** change call op to test for TargetType
 ** add DISPATCH op

@@ -36,7 +36,8 @@ func (self *M) Emit(op Op) *Op {
 
 const (
 	STOP = iota
-	
+
+	BENCH
 	BRANCH
 	CALL
 	ENV_POP
@@ -56,6 +57,35 @@ const (
 func (self *M) EmitStop() {
 	self.Emit(STOP)
 }
+
+/* Bench */
+
+const (
+	OpBenchRepsBit = OpCodeBits
+	OpBenchEndPcBit = OpBenchRepsBit+OpRegBits
+)
+
+func (self Op) BenchReps() Reg {
+	return Reg((self >> OpBenchRepsBit) & ((1 << OpRegBits) - 1))
+}
+
+func (self Op) BenchEndPc() PC {
+	return PC((self >> OpBenchEndPcBit) & ((1 << OpPcBits) - 1))
+}
+
+func (self *Op) InitBench(reps Reg, endPc PC) *Op {
+	*self = Op(BENCH +
+		Op(reps << OpBenchRepsBit) +
+		Op(endPc << OpBenchEndPcBit))
+	
+	return self
+}
+
+func (self *M) EmitBench(reps Reg, endPc PC) *Op {
+	return self.Emit(0).InitBench(reps, endPc)
+}
+
+/* Branch */
 
 const (
 	OpBranchTruePcBit = OpReg2Bit
