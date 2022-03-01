@@ -1,8 +1,3 @@
-* track/fuse copies
-** load into final reg
-** solve circular assign in fib
-* fuse consecutive NOP's
-** replace with GOTO
 * profile
 * add user macros
 * typecheck Fun args
