@@ -193,6 +193,7 @@ func (self *FunType) EmitValCall(val Val, args []Form, pos Pos, m *M) error {
 	}
 
 	f := fd.(*Fun)
+	m.EmitEnvPush()
 	
 	for i := 0; i < f.argCount; i++ {
 		a := args[i]
@@ -323,6 +324,10 @@ type NilType struct {
 
 func (self *NilType) BoolVal(val Val) bool {
 	return false
+}
+
+func (self *NilType) DumpVal(val Val, out io.Writer) {
+	fmt.Fprintf(out, "_")
 }
 
 /* Var */

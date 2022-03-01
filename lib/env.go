@@ -19,7 +19,7 @@ type Env struct {
 	regCount Reg
 }
 
-func (self *Env) Init(outer *Env) {
+func (self *Env) Init(outer *Env) *Env {
 	self.outer = outer
 
 	if outer == nil {
@@ -31,6 +31,8 @@ func (self *Env) Init(outer *Env) {
 			self.Regs[i] = outer.Regs[i]
 		}
 	}
+
+	return self
 }
 
 func (self *Env) FindVal(key *Sym) *Val {

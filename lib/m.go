@@ -167,7 +167,7 @@ func (self *M) Init() {
 			if r, err = self.env.Regs[2].Data(); err != nil {
 				return -1, err
 			}
-			
+
 			self.env.Regs[0].Init(&self.IntType, l.(int)+r.(int))
 			return ret, nil
 		})

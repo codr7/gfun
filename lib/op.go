@@ -39,6 +39,8 @@ const (
 	
 	BRANCH
 	CALL
+	ENV_POP
+	ENV_PUSH
 	GOTO
 	LOAD_BOOL
 	LOAD_FUN
@@ -92,6 +94,14 @@ func (self Op) CallTarget() Reg {
 
 func (self *M) EmitCall(target Reg) *Op {
 	return self.Emit(Op(CALL + (target << OpCodeBits)))
+}
+
+func (self *M) EmitEnvPop() {
+	self.Emit(ENV_POP)
+}
+
+func (self *M) EmitEnvPush() {
+	self.Emit(ENV_PUSH)
 }
 
 /* Goto */

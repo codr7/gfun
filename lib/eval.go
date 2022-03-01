@@ -36,8 +36,15 @@ func (self *M) Eval(pc PC) error {
 				return err
 			}
 
-			if pc, err = fun.(*Fun).Call(pc+1, self); err != nil {
+			retPc := pc+1
+			
+			if pc, err = fun.(*Fun).Call(retPc, self); err != nil {
 				return err
+			}
+
+			if pc == retPc {
+				self.env.outer.Regs[0] = self.env.Regs[0]
+				self.env = self.env.outer
 			}
 			
 		case BRANCH:
@@ -50,6 +57,22 @@ func (self *M) Eval(pc PC) error {
 			} else {
 				pc = op.BranchFalsePc()
 			}
+
+		case ENV_POP:
+			if (self.debug) {
+				log.Printf("ENV_POP\n")
+			}
+
+			self.env = self.env.outer
+			pc++
+
+		case ENV_PUSH:
+			if (self.debug) {
+				log.Printf("ENV_PUSH\n")
+			}
+
+			self.env = new(Env).Init(self.env)
+			pc++
 
 		case GOTO:
 			if (self.debug) {
@@ -138,6 +161,8 @@ func (self *M) Eval(pc PC) error {
 			
 			f := self.Ret()
 			pc = f.ret
+			self.env.outer.Regs[0] = self.env.Regs[0]
+			self.env = self.env.outer
 			
 		default:
 			log.Fatalf("Unknown op code at pc %v: %v (%v)", pc, op.Code(), op)

@@ -50,8 +50,11 @@ func (self *M) Repl(readers []Reader, in io.Reader, out io.Writer) error {
 				}
 				
 				resVal := self.env.Regs[0]
-				resVal.Type().DumpVal(resVal, out)
-				fmt.Fprintf(out, "\n")
+
+				if resVal.Type() != &self.NilType {
+					resVal.Type().DumpVal(resVal, out)
+					fmt.Fprintf(out, "\n")
+				}
 			}
 			
 			buf.Reset()
