@@ -47,7 +47,7 @@ gfun is pretty slow at the moment, around 5 times as slow as Python; I know it's
 
 (bench 100 (fib 20))
 
-489
+537
 ```
 
 ### support
