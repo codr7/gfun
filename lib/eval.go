@@ -28,16 +28,11 @@ func (self *M) Eval(pc PC) error {
 				return fmt.Errorf("Not callable: %v", tgt)
 			}
 
-			var err error
-			var fun interface{}
-
-			if fun, err = tgt.Data(); err != nil {
-				return err
-			}
-
+			fun := tgt.Data().(*Fun)
 			retPc := pc+1
+			var err error
 			
-			if pc, err = fun.(*Fun).Call(retPc, self); err != nil {
+			if pc, err = fun.Call(retPc, self); err != nil {
 				return err
 			}
 
@@ -77,12 +72,7 @@ func (self *M) Eval(pc PC) error {
 			pc++
 			
 		case BENCH:
-			reps, err := self.Env().Regs[op.BenchReps()].Data()
-
-			if err != nil {
-				return err
-			}
-
+			reps := self.Env().Regs[op.BenchReps()].Data()
 			start := time.Now()
 			
 			for i := 0; i < reps.(int); i++ {
@@ -102,17 +92,19 @@ func (self *M) Eval(pc PC) error {
 			}
 
 		case DEC:
-			t := self.Env().Regs[op.DecTarget()]
-			v, err := t.Data()
-
-			if err != nil {
-				return err
-			}
-			
-			t.Init(&self.IntType, v.(int)-op.DecDelta())
-			self.Env().Regs[0] = t
+			env := self.Env()
+			t := &env.Regs[op.DecTarget()]
+			t.Init(&self.IntType, t.Data().(int)-op.DecDelta())
+			env.Regs[0] = *t
 			pc++
-		
+
+		case EQ:
+			env := self.Env()
+			l := env.Regs[op.Reg1()]
+			r := env.Regs[op.Reg2()]
+			env.Regs[0].Init(&self.BoolType, l.Type().EqVal(l, r))
+			pc++
+			
 		case ENV_POP:
 			self.PopEnv()
 			pc++

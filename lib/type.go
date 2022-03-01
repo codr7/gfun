@@ -11,12 +11,12 @@ type TypeId int
 type Type interface {
 	Id() TypeId
 	Name() *Sym
-	GetVal(interface{}) (interface{}, error)
 	Parents() []Type
 	Isa(Type) bool
 	BoolVal(Val) bool
 	EmitVal(Val, Reg, *M) error
 	EmitValCall(Val, []Form, Pos, *M) error
+	EqVal(Val, Val) bool
 	DumpVal(Val, io.Writer)
 	String() string
 }
@@ -51,10 +51,6 @@ func (self *BasicType) Name() *Sym {
 	return self.name
 }
 
-func (self *BasicType) GetVal(in interface{}) (interface{}, error) {
-	return in, nil
-}
-
 func (self *BasicType) Parents() []Type {
 	out := make([]Type, len(self.parents))
 	i := 0
@@ -84,14 +80,12 @@ func (self *BasicType) EmitValCall(val Val, args []Form, pos Pos, m *M) error {
 	return fmt.Errorf("Call not supported: %v", self)
 }
 
-func (self *BasicType) DumpVal(val Val, out io.Writer) {
-	v, err := val.Data()
+func (self *BasicType) EqVal(l Val, r Val) bool {
+	return l.Data() == r.Data()
+}
 
-	if err != nil {
-		log.Fatal(err)
-	}
-	
-	fmt.Fprintf(out, "%v", v)
+func (self *BasicType) DumpVal(val Val, out io.Writer) {
+	fmt.Fprintf(out, "%v", val.Data())
 }
 
 func (self *BasicType) String() string {
@@ -118,13 +112,7 @@ func (self *M) GetType(name *Sym) (Type, error) {
 		return nil, err
 	}
 
-	var f interface{}
-	
-	if f, err = v.Data(); err != nil {
-		return nil, err
-	}
-
-	return f.(Type), nil
+	return v.Data().(Type), nil
 }
 
 
@@ -135,29 +123,16 @@ type BoolType struct {
 }
 
 func (self *BoolType) BoolVal(val Val) bool {
-	v, _ := val.Data()
-	return v.(bool)
+	return val.Data().(bool)
 }
 
 func (self *BoolType) EmitVal(val Val, reg Reg, m *M) error {
-	v, err := val.Data()
-
-	if err != nil {
-		return err
-	}
-	
-	m.EmitLoadBool(reg, v.(bool))
+	m.EmitLoadBool(reg, val.Data().(bool))
 	return nil
 }
 
 func (self *BoolType) DumpVal(val Val, out io.Writer) {
-	v, err := val.Data()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if (v.(bool)) {
+	if (val.Data().(bool)) {
 		fmt.Fprintf(out, "T")
 	} else {
 		fmt.Fprintf(out, "F")
@@ -175,25 +150,17 @@ func (self *FunType) BoolVal(val Val) bool {
 }
 
 func (self *FunType) EmitVal(val Val, reg Reg, m *M) error {
-	v, err := val.Data()
-
-	if err != nil {
-		return err
-	}
-	
-	m.EmitLoadFun(reg, v.(*Fun))
+	m.EmitLoadFun(reg, val.Data().(*Fun))
 	return nil
 }
 
 func (self *FunType) EmitValCall(val Val, args []Form, pos Pos, m *M) error {
-	fd, err := val.Data()
-
-	if err != nil {
-		return err
-	}
-
-	f := fd.(*Fun)
+	f := val.Data().(*Fun)
 	m.EmitEnvPush()
+
+	if len(args) < f.argCount {
+		return fmt.Errorf("Missing args for %v: %v %v", f, f.argCount, args)
+	}
 	
 	for i := 0; i < f.argCount; i++ {
 		a := args[i]
@@ -208,13 +175,7 @@ func (self *FunType) EmitValCall(val Val, args []Form, pos Pos, m *M) error {
 }
 
 func (self *FunType) DumpVal(val Val, out io.Writer) {
-	f, err := val.Data()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-	
-	fmt.Fprintf(out, "(Fun %v)", f.(*Fun).name)
+	fmt.Fprintf(out, "(Fun %v)", val.Data().(*Fun).name)
 }
 
 /* Int */
@@ -224,18 +185,11 @@ type IntType struct {
 }
 
 func (self *IntType) BoolVal(val Val) bool {
-	v, _ := val.Data()
-	return v.(int) != 0
+	return val.Data().(int) != 0
 }
 
 func (self *IntType) EmitVal(val Val, reg Reg, m *M) error {
-	v, err := val.Data()
-
-	if err != nil {
-		return err
-	}
-	
-	m.EmitLoadInt(reg, v.(int))
+	m.EmitLoadInt(reg, val.Data().(int))
 	return nil
 }
 
@@ -250,34 +204,16 @@ func (self *MacroType) BoolVal(val Val) bool {
 }
 
 func (self *MacroType) EmitVal(val Val, reg Reg, m *M) error {
-	v, err := val.Data()
-
-	if err != nil {
-		return err
-	}
-	
-	m.EmitLoadMacro(reg, v.(*Macro))
+	m.EmitLoadMacro(reg, val.Data().(*Macro))
 	return nil
 }
 
 func (self *MacroType) EmitValCall(val Val, args []Form, pos Pos, m *M) error {
-	v, err := val.Data()
-
-	if err != nil {
-		return err
-	}
-
-	return v.(*Macro).Expand(args, pos, m)
+	return val.Data().(*Macro).Expand(args, pos, m)
 }
 
 func (self *MacroType) DumpVal(val Val, out io.Writer) {
-	f, err := val.Data()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-	
-	fmt.Fprintf(out, "(Macro %v)", f.(*Macro).name)
+	fmt.Fprintf(out, "(Macro %v)", val.Data().(*Macro).name)
 }
 
 /* Meta */
@@ -291,24 +227,12 @@ func (self *MetaType) BoolVal(val Val) bool {
 }
 
 func (self *MetaType) EmitVal(val Val, reg Reg, m *M) error {
-	v, err := val.Data()
-
-	if err != nil {
-		return err
-	}
-	
-	m.EmitLoadType(reg, v.(Type))
+	m.EmitLoadType(reg, val.Data().(Type))
 	return nil
 }
 
 func (self *MetaType) DumpVal(val Val, out io.Writer) {
-	v, err := val.Data()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-	
-	fmt.Fprintf(out, "%v", v.(Type).Name())
+	fmt.Fprintf(out, "%v", val.Data().(Type).Name())
 }
 
 /* Nil */
@@ -332,22 +256,10 @@ type VarType struct {
 }
 
 func (self *VarType) EmitVal(val Val, reg Reg, m *M) error {
-	v, err := val.Data()
-
-	if err != nil {
-		return err
-	}
-	
-	m.EmitCopy(reg, v.(Reg))
+	m.EmitCopy(reg, val.Data().(Reg))
 	return nil
 }
 
 func (self *VarType) DumpVal(val Val, out io.Writer) {
-	v, err := val.Data()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-	
-	fmt.Fprintf(out, "(Var %v)", v.(Reg))
+	fmt.Fprintf(out, "(Var %v)", val.Data().(Reg))
 }

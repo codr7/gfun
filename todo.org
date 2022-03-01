@@ -1,10 +1,8 @@
 * profile
-* fibtail
 * add user macros
 * typecheck Fun args
 * typecheck Fun ret
 * speed up Isa using static array
-* only push/pop env if fun has args
 * add LOAD_SYM
 ** rename m.syms to symLookup
 ** add static array m.syms
@@ -18,5 +16,3 @@
 *** move M types
 * add Multi
 ** add DISPATCH op
-
-(fun: foo [x Int] Int 42)

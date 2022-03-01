@@ -103,11 +103,5 @@ func (self *M) GetFun(name *Sym) (*Fun, error) {
 		return nil, err
 	}
 
-	var f interface{}
-	
-	if f, err = v.Data(); err != nil {
-		return nil, err
-	}
-
-	return f.(*Fun), nil
+	return v.Data().(*Fun), nil
 }

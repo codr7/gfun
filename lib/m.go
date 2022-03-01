@@ -61,6 +61,20 @@ func (self *M) Init() {
 	self.Bind(self.Sym("T")).Init(&self.BoolType, true)
 	self.Bind(self.Sym("F")).Init(&self.BoolType, false)
 	self.Bind(self.Sym("_")).Init(&self.NilType, nil)
+
+	self.BindNewMacro(self.Sym("="), 2,
+		func(macro *Macro, args []Form, pos Pos, m *M) error {
+			if err := args[0].Emit(1, m); err != nil {
+				return err
+			}
+
+			if err := args[1].Emit(2, m); err != nil {
+				return err
+			}
+
+			m.EmitEq(1, 2)
+			return nil
+		})
 	
 	self.BindNewMacro(self.Sym("bench"), 2,
 		func(macro *Macro, args []Form, pos Pos, m *M) error {
@@ -99,13 +113,7 @@ func (self *M) Init() {
 			d := 1
 			
 			if len(args) > 1 {
-				dv, err := args[1].(*LitForm).val.Data()
-
-				if err != nil {
-					return err
-				}
-
-				d = dv.(int)
+				d = args[1].(*LitForm).val.Data().(int)
 			}	
 				
 			self.EmitDec(reg, d)
@@ -199,20 +207,10 @@ func (self *M) Init() {
 			Add(self.Sym("r"), &self.IntType),
 		&self.IntType,
 		func(fun *Fun, ret PC, m *M) (PC, error) {
-			var err error
-			var l interface{}
-			
-			if l, err = self.Env().Regs[1].Data(); err != nil {
-				return -1, err
-			}
-			
-			var r interface{}
-			
-			if r, err = self.Env().Regs[2].Data(); err != nil {
-				return -1, err
-			}
-
-			self.Env().Regs[0].Init(&self.IntType, l.(int)+r.(int))
+			env := self.Env()
+			l := env.Regs[1].Data().(int)
+			r := env.Regs[2].Data().(int)
+			env.Regs[0].Init(&self.IntType, l+r)
 			return ret, nil
 		})
 
@@ -222,20 +220,10 @@ func (self *M) Init() {
 			Add(self.Sym("r"), &self.IntType),
 		&self.IntType,
 		func(fun *Fun, ret PC, m *M) (PC, error) {
-			var err error
-			var l interface{}
-			
-			if l, err = self.Env().Regs[1].Data(); err != nil {
-				return -1, err
-			}
-			
-			var r interface{}
-			
-			if r, err = self.Env().Regs[2].Data(); err != nil {
-				return -1, err
-			}
-			
-			self.Env().Regs[0].Init(&self.IntType, l.(int)-r.(int))
+			env := self.Env()
+			l := env.Regs[1].Data().(int)
+			r := env.Regs[2].Data().(int)
+			env.Regs[0].Init(&self.IntType, l-r)
 			return ret, nil
 		})
 
@@ -245,20 +233,10 @@ func (self *M) Init() {
 			Add(self.Sym("r"), &self.IntType),
 		&self.BoolType,
 		func(fun *Fun, ret PC, m *M) (PC, error) {
-			var err error
-			var l interface{}
-			
-			if l, err = self.Env().Regs[1].Data(); err != nil {
-				return -1, err
-			}
-			
-			var r interface{}
-			
-			if r, err = self.Env().Regs[2].Data(); err != nil {
-				return -1, err
-			}
-			
-			self.Env().Regs[0].Init(&self.BoolType, l.(int) < r.(int))
+			env := self.Env()
+			l := env.Regs[1].Data().(int)
+			r := env.Regs[2].Data().(int)
+			env.Regs[0].Init(&self.BoolType, l < r)
 			return ret, nil
 		})
 }

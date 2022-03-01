@@ -51,6 +51,10 @@ func (self Op) ReadsReg(reg Reg) bool {
 		if self.Reg2() == reg {
 			return true
 		}
+	case EQ:
+		if self.Reg1() == reg || self.Reg2() == reg {
+			return true
+		}
 	case RET:
 		if reg == 0 {
 			return true
@@ -107,7 +111,9 @@ func (self Op) Dump(pc PC, m *M, out io.Writer) PC {
 		case BRANCH:
 			fmt.Fprintf(out, "BRANCH %v %v %v", self.BranchCond(), self.BranchTruePc(), self.BranchFalsePc())
 		case DEC:
-			fmt.Fprintf(out, "DEC %v", self.DecTarget())
+			fmt.Fprintf(out, "DEC %v %v", self.DecTarget(), self.DecDelta())
+		case EQ:
+			fmt.Fprintf(out, "EQ %v %v", self.Reg1(), self.Reg2())
 		case ENV_POP:
 			fmt.Fprintf(out, "ENV_POP")
 		case ENV_PUSH:
@@ -173,6 +179,7 @@ const (
 	DEC
 	ENV_POP
 	ENV_PUSH
+	EQ
 	GOTO
 	LOAD_BOOL
 	LOAD_FUN
@@ -323,6 +330,17 @@ func (self *M) EmitEnvPush() {
 	self.Emit(ENV_PUSH)
 }
 
+/* Eq */
+
+func (self *Op) InitEq (l, r Reg) *Op {
+	*self = Op(EQ + Op(l << OpCodeBits) + Op(r << OpReg2Bit))
+	return self
+}
+
+func (self *M) EmitEq(l, r Reg) *Op {
+	return self.Emit(0).InitEq(l, r)
+}
+
 /* Goto */
 
 func (self Op) GotoPc() PC {
@@ -378,11 +396,6 @@ const (
 	OpLoadInt1Max = 1 << (OpBits - OpRegBits - OpCodeBits - 1)
 	OpLoadInt1ValBit = OpReg2Bit
 )
-
-func (self *Op) InitLoadTarget(target Reg) {
-	suffix := *self >> OpCodeBits + OpRegBits
-	*self = Op(self.OpCode()) + Op(target << OpCodeBits) + Op(suffix << OpReg2Bit)
-}
 
 func (self Op) LoadInt1Val() int {
 	v := int(self >> OpLoadInt1ValBit)

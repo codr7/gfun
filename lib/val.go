@@ -20,6 +20,6 @@ func (self *Val) Type() Type {
 	return self._type
 }
 
-func (self *Val) Data() (interface{}, error) {
-	return self._type.GetVal(self.data)
+func (self *Val) Data() interface{} {
+	return self.data
 }
