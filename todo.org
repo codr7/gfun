@@ -1,6 +1,3 @@
-* alloc frames statically
-** change M.frame to static array
-** add frameCount
 * fuse copy/load ops
 ** find/nop unused load/copy ops until done
 ** call uses 1-8

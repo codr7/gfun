@@ -112,16 +112,16 @@ func (self *Env) AllocReg() Reg {
 }
 
 func (self *M) Env() *Env {
+	if self.envCount == 0 {
+		return nil
+	}
+	
 	return &self.envs[self.envCount-1]
 }
 
 func (self *M) PushEnv() *Env {
 	e := &self.envs[self.envCount]
-
-	if self.envCount > 0 {
-		e.Init(self.Env())
-	}
-	
+	e.Init(self.Env())
 	self.envCount++
 	return e
 }

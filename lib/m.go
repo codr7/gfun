@@ -9,6 +9,7 @@ const (
 	OpCount = 1 << OpPcBits
 	TypeCount = 1 << OpTypeIdBits
 	EnvCount = 1024
+	FrameCount = 1024
 )
 
 type PC int
@@ -30,7 +31,8 @@ type M struct {
 	emitPc PC
 	envs [EnvCount]Env
 	envCount int
-	frame *Frame
+	frames [FrameCount] Frame
+	frameCount int
 	debug bool
 }
 

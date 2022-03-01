@@ -197,7 +197,7 @@ func (self *M) Eval(pc PC) error {
 				log.Printf("RET")
 			}
 			
-			f := self.Ret()
+			f := self.PopFrame()
 			pc = f.ret
 			self.PopEnv()
 			

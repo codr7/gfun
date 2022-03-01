@@ -72,7 +72,7 @@ func (self *Fun) Emit(body Form, m *M) error {
 	skip.InitGoto(m.emitPc)
 	
 	self.body = func(fun *Fun, ret PC, m *M) (PC, error) {
-		m.Call(fun, ret)
+		m.PushFrame(fun, ret)
 		return startPc, nil
 	}
 

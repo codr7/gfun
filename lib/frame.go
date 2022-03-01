@@ -6,20 +6,28 @@ type Frame struct {
 	ret PC
 }
 
-func (self *Frame) Init(m *M, fun *Fun, ret PC) *Frame {
-	self.outer = m.frame
+func (self *Frame) Init(outer *Frame, fun *Fun, ret PC) *Frame {
 	self.fun = fun
 	self.ret = ret
 	return self
 }
 
-func (self *M) Call(fun *Fun, ret PC) *Frame {
-	self.frame = new(Frame).Init(self, fun, ret)
-	return self.frame
+func (self *M) Frame() *Frame {
+	if self.frameCount == 0 {
+		return nil
+	}
+	
+	return &self.frames[self.frameCount-1]
 }
 
-func (self *M) Ret() *Frame {
-	f := self.frame
-	self.frame = f.outer
+func (self *M) PushFrame(fun *Fun, ret PC) *Frame {
+	f := &self.frames[self.frameCount]
+	f.Init(self.Frame(), fun, ret)
+	self.frameCount++
 	return f
+}
+
+func (self *M) PopFrame() *Frame {
+	self.frameCount--
+	return &self.frames[self.frameCount]
 }
