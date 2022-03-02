@@ -69,6 +69,7 @@ func (self *Fun) Emit(body Form, m *M) error {
 	}
 
 	m.EmitRet()
+	m.Fuse(startPc)
 	skip.InitGoto(m.emitPc)
 	
 	self.body = func(fun *Fun, ret PC, m *M) (PC, error) {
