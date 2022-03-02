@@ -57,7 +57,7 @@ Values may be bound to identifiers using `let`.
 42
 ```
 
-Rebinding temporarily binds the outer value, ie. bindings acts as scoped special vars.
+Rebinding temporarily binds the outer value, ie. bindings act as scoped special vars.
 
 ```
   (let [foo 1]
