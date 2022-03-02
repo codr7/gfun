@@ -84,7 +84,7 @@ GFun is currently around 1-4 times as slow as Python.
   (fun: fibtail [n Int a Int b Int] Int
     (if (= n 0) a (if (= n 1) b (fibtail (dec n) b (+ a b)))))
 
-(bench 10000 (fibtail 70 0 1))
+  (bench 10000 (fibtail 70 0 1))
 
 200
 ```
