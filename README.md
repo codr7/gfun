@@ -17,7 +17,7 @@ Much along the same lines as [g-fu](https://github.com/codr7/g-fu), but a tighte
 The different layers of the implementation are well separated and may be used separately or mixed and matched; for example by putting a different syntax on top or adapting the existing one, or adding additional compilation steps.<br/><br/>
 
 ### limitations
-For performance reasons, the core loop specifies operations inline; which means that it's impossible to extend with new operations without changing the code. Limits on number of operations, number of registers etc. are determined by the bytecode [format](https://github.com/codr7/GFun/blob/main/lib/op.go).
+For performance reasons, the core loop specifies operations inline; which means that it's impossible to extend with new operations without changing the code. Limits on number of operations, number of registers etc. are determined by the bytecode [format](https://github.com/codr7/gfun/blob/main/lib/op.go).
 
 ### status
 It's still early days, I'm currently profiling and optimizing the implementation guided by initial performance numbers.
@@ -28,8 +28,8 @@ It's still early days, I'm currently profiling and optimizing the implementation
 $ cd tests
 $ go test
 $ cd ..
-$ go build GFun.go
-$ ./GFun
+$ go build gfun.go
+$ ./gfun
 ```
 
 ### types
