@@ -1,5 +1,6 @@
-* add FuseGotos
-** follow chains & fuse links
+* add let macro
+** (let [x 1 y 2] ...)
+** add bindings to readme
 * profile
 * add lambda support
 ** Fun with Gensymmed id
@@ -7,9 +8,6 @@
 ** Extract logic to parse arg list
 ** add fun macro
 ** add to readme
-* add let macro
-** (let [x 1 y 2] ...)
-** add bindings to readme
 * add user macros
 ** add quoting
 ** add ReadQuote

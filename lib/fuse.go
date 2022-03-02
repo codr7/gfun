@@ -73,6 +73,32 @@ func (self *M) FuseExit(startPc PC) int {
 	return res
 }
 
+func (self *M) FuseGotos(startPc PC) int {
+	res := 0
+
+	for i := startPc; i < self.emitPc; i++ {
+		op1 := &self.ops[i]
+
+		if op1.OpCode() != GOTO {
+			continue
+		}
+
+		i = op1.GotoPc()		
+		op2 := self.ops[op1.GotoPc()]
+
+		if op2.OpCode() != GOTO {
+			continue
+		}
+
+		log.Printf("Fused goto at %v: %v/%v", i, op1.GotoPc(), op2.GotoPc())
+		op1.InitGoto(op2.GotoPc())
+		i = op1.GotoPc()
+		res++
+	}
+
+	return res
+}
+
 func (self *M) FuseNops(startPc PC) int {
 	res := 0
 	
@@ -160,6 +186,7 @@ func (self *M) Fuse(startPc PC) PC {
 	for {		
 		if self.FuseCircularCopies(startPc) == 0 &&
 			self.FuseUnusedLoads(startPc) == 0 &&
+			self.FuseGotos(startPc) == 0 &&
 			self.FuseNops(startPc) == 0 &&
 			self.FuseExit(startPc) == 0 {
 			break
