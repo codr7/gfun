@@ -241,11 +241,11 @@ func (self *M) Init() {
 					m.EmitCopy(stashReg, reg)
 					vf.Emit(reg, m)
 					var sop Op
-					sop.InitCopy(stashReg, reg)
+					sop.InitCopy(reg, stashReg)
 					stashOps = append(stashOps, sop)
 				}
 			}
-			
+						
 			for _, f := range args[1:] {
 				f.Emit(0, m)
 			}

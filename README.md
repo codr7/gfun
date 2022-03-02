@@ -57,6 +57,17 @@ Values may be bound to identifiers using `let`.
 42
 ```
 
+Rebinding temporarily binds the outer value, ie. bindings acts as scoped special vars.
+
+```
+  (let [foo 1]
+    (fun: bar [] Int foo)
+    (let [foo 3]
+      (bar)))
+
+3
+```
+
 ### performance
 GFun is currently around 1-4 times as slow as Python.
 

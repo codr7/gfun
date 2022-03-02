@@ -56,6 +56,10 @@ func (self *CallForm) Emit(reg Reg, m *M) error {
 	return nil
 }
 
+func (self *CallForm) String() string {
+	return "()"
+}
+
 /* Id */
 
 type IdForm struct {
@@ -91,6 +95,10 @@ func (self *IdForm) EmitCall(args []Form, pos Pos, m *M) error {
 	}
 
 	return v.Type().EmitValCall(*v, args, pos, m)	
+}
+
+func (self *IdForm) String() string {
+	return self.id.name
 }
 
 /* Lit */
@@ -133,4 +141,8 @@ func (self *SliceForm) Init(pos Pos, items []Form) *SliceForm {
 	self.BasicForm.Init(pos)
 	self.items = items
 	return self
+}
+
+func (self *SliceForm) String() string {
+	return "[]"
 }

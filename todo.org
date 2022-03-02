@@ -27,4 +27,3 @@
 * add Multi
 ** add DISPATCH op
 
-(let [foo 35 bar (+ foo 7)] bar)
