@@ -1,7 +1,3 @@
-* add typeof fun
-** readme
-*** (typeof 42)
-*** (typeof Int)
 * add lambda support
 ** Fun with Gensymmed id
 *** add M.GenSym()
@@ -28,4 +24,3 @@
 *** move M types
 * add Multi
 ** add DISPATCH op
-

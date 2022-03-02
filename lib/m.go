@@ -297,6 +297,15 @@ func (self *M) Init() {
 			return nil
 		})
 
+	self.BindNewFun(self.Sym("typeof"),
+		NewFunArgs().Add(self.Sym("val"), &self.AnyType),
+		&self.MetaType,
+		func(fun *Fun, ret PC, m *M) (PC, error) {
+			env := self.Env()
+			env.Regs[0].Init(&self.MetaType, env.Regs[1].Type())
+			return ret, nil
+		})
+
 	self.BindNewFun(self.Sym("+"),
 		NewFunArgs().
 			Add(self.Sym("l"), &self.IntType).

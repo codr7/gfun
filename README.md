@@ -33,6 +33,17 @@ $ ./gfun
 ```
 
 ### types
+GFun supports first class types, `typeof` may be used to get the type of any value.
+
+```
+  (typeof 42)
+
+Int
+  (typeof Int)
+
+Meta
+```
+
 #### Any
 The root type.
 #### Fun < Any
