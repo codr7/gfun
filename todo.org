@@ -1,13 +1,14 @@
 * add let macro
 ** (let [x 1 y 2] ...)
 ** add bindings to readme
-* profile
 * add lambda support
 ** Fun with Gensymmed id
 *** add M.GenSym()
 ** Extract logic to parse arg list
 ** add fun macro
 ** add to readme
+* fix closures
+* profile
 * add user macros
 ** add quoting
 ** add ReadQuote
@@ -21,12 +22,8 @@
 ** add SymId type
 ** add ReadSym()
 ** add M.SymType
-* add LOAD_NIL
-** implement NilType.EmitVal
 * add Lib
 ** add abc
 *** move M types
 * add Multi
 ** add DISPATCH op
-
-(fun: foo [x Int y Int] Int _)
