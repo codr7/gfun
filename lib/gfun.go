@@ -1,5 +1,5 @@
 package gfun
 
 const (
-	Version = 2
+	Version = 3
 )

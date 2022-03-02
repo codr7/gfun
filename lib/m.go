@@ -120,7 +120,7 @@ func (self *M) Init() {
 			return nil
 		})
 
-	self.BindNewMacro(self.Sym("do"), -1,
+	self.BindNewMacro(self.Sym("do"), 1,
 		func(macro *Macro, args []Form, pos Pos, m *M) error {
 			for _, f := range args {
 				if err := f.Emit(0, m); err != nil {
@@ -198,6 +198,63 @@ func (self *M) Init() {
 			
 			skip.InitGoto(m.emitPc)
 			branch.InitBranch(0, truePc, falsePc)
+			return nil
+		})
+
+	self.BindNewMacro(self.Sym("let"), 2,
+		func(macro *Macro, args []Form, pos Pos, m *M) error {
+			bsf := args[0].(*SliceForm).items
+			var stashOps []Op
+			m.EmitEnvPush()
+
+			for i := 0; i < len(bsf); i++ {
+				k := bsf[i].(*IdForm).id
+				i++
+				vf := bsf[i]
+				env := m.Env()
+				v := env.FindVal(k)
+				
+				if v == nil {
+					reg := env.AllocReg()
+
+					if err := env.SetReg(k, reg, false); err != nil {
+						return err
+					}
+
+					env.Regs[reg].Init(&m.VarType, reg)
+					vf.Emit(reg, m)
+				} else {
+					stashReg := env.AllocReg()
+					reg := Reg(-1)
+						
+					if v.Type() == &self.VarType {
+						reg = v.Data().(Reg)
+
+					} else {
+						var err error
+						
+						if reg, err = env.GetReg(k); err != nil {
+							return err
+						}
+					}
+					
+					m.EmitCopy(stashReg, reg)
+					vf.Emit(reg, m)
+					var sop Op
+					sop.InitCopy(stashReg, reg)
+					stashOps = append(stashOps, sop)
+				}
+			}
+			
+			for _, f := range args[1:] {
+				f.Emit(0, m)
+			}
+
+			for i := len(stashOps)-1; i >= 0; i-- {
+				self.Emit(stashOps[i])
+			}
+
+			m.EmitEnvPop()
 			return nil
 		})
 

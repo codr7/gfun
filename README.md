@@ -1,10 +1,10 @@
 ## GFun
 
 ```
-(fun: fib [n Int] Int
-  (if (< n 2) n (+ (fib (dec n)) (fib (dec n 2)))))
+  (fun: fib [n Int] Int
+    (if (< n 2) n (+ (fib (dec n)) (fib (dec n 2)))))
   
-(fib 10)
+  (fib 10)
 
 55
 ```
@@ -48,21 +48,30 @@ The type of types.
 #### Nil < Any
 The nil type has one value, `_`.
 
+### bindings
+Values may be bound to identifiers using `let`.
+
+```
+  (let [foo 35 bar (+ foo 7)] bar)
+
+42
+```
+
 ### performance
 GFun is currently around 1-4 times as slow as Python.
 
 ```
-(fun: fibrec [n Int] Int
-  (if (< n 2) n (+ (fibrec (dec n)) (fibrec (dec n 2)))))
+  (fun: fibrec [n Int] Int
+    (if (< n 2) n (+ (fibrec (dec n)) (fibrec (dec n 2)))))
 
-(bench 100 (fibrec 20))
+  (bench 100 (fibrec 20))
 
 527
 ```
 
 ```
-(fun: fibtail [n Int a Int b Int] Int
-  (if (= n 0) a (if (= n 1) b (fibtail (dec n) b (+ a b)))))
+  (fun: fibtail [n Int a Int b Int] Int
+    (if (= n 0) a (if (= n 1) b (fibtail (dec n) b (+ a b)))))
 
 (bench 10000 (fibtail 70 0 1))
 
