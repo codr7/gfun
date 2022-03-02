@@ -49,7 +49,7 @@ The type of types.
 The nil type has one value, `_`.
 
 ### bindings
-Values may be bound to identifiers using `let`.
+Values may be temprarily bound to identifiers using `let`.
 
 ```
   (let [foo 35 bar (+ foo 7)] bar)
@@ -66,6 +66,15 @@ Rebinding temporarily binds the outer value, ie. bindings act as scoped special 
       (bar)))
 
 3
+```
+
+Values may be bound until further using `set`.
+
+```
+  (set foo 35 bar 7 baz (+ 35 7))
+  baz
+
+42
 ```
 
 ### performance

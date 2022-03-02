@@ -258,6 +258,45 @@ func (self *M) Init() {
 			return nil
 		})
 
+		self.BindNewMacro(self.Sym("set"), 2,
+		func(macro *Macro, args []Form, pos Pos, m *M) error {
+			for i := 0; i < len(args); i++ {
+				k := args[i].(*IdForm).id
+				i++
+				vf := args[i]
+				env := m.Env()
+				v := env.FindVal(k)
+				
+				if v == nil {
+					reg := env.AllocReg()
+
+					if err := env.SetReg(k, reg, false); err != nil {
+						return err
+					}
+
+					env.Regs[reg].Init(&m.VarType, reg)
+					vf.Emit(reg, m)
+				} else {
+					reg := Reg(-1)
+						
+					if v.Type() == &self.VarType {
+						reg = v.Data().(Reg)
+
+					} else {
+						var err error
+						
+						if reg, err = env.GetReg(k); err != nil {
+							return err
+						}
+					}
+					
+					vf.Emit(reg, m)
+				}
+			}
+
+			return nil
+		})
+
 	self.BindNewFun(self.Sym("+"),
 		NewFunArgs().
 			Add(self.Sym("l"), &self.IntType).
