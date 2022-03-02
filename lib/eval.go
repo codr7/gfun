@@ -141,6 +141,10 @@ func (self *M) Eval(pc PC) error {
 			self.Env().Regs[op.Reg1()].Init(&self.MacroType, m)
 			pc += 2
 			
+		case LOAD_NIL:
+			self.Env().Regs[op.Reg1()].Init(&self.NilType, nil)
+			pc++
+
 		case LOAD_TYPE:
 			t := self.types[op.LoadTypeId()]
 			self.Env().Regs[op.Reg1()].Init(&self.MetaType, t)

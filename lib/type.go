@@ -245,6 +245,11 @@ func (self *NilType) BoolVal(val Val) bool {
 	return false
 }
 
+func (self *NilType) EmitVal(val Val, reg Reg, m *M) error {
+	m.EmitLoadNil(reg)
+	return nil
+}
+
 func (self *NilType) DumpVal(val Val, out io.Writer) {
 	fmt.Fprintf(out, "_")
 }

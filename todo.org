@@ -1,3 +1,5 @@
+* add FuseGotos
+** follow chains & fuse links
 * profile
 * add lambda support
 ** Fun with Gensymmed id
@@ -28,3 +30,5 @@
 *** move M types
 * add Multi
 ** add DISPATCH op
+
+(fun: foo [x Int y Int] Int _)

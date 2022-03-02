@@ -80,7 +80,7 @@ func (self Op) WritesReg(reg Reg) bool {
 		if self.DecTarget() == reg || reg == 0 {
 			return true
 		}
-	case LOAD_BOOL, LOAD_FUN, LOAD_INT1, LOAD_INT2, LOAD_MACRO, LOAD_TYPE:
+	case LOAD_BOOL, LOAD_FUN, LOAD_INT1, LOAD_INT2, LOAD_MACRO, LOAD_NIL, LOAD_TYPE:
 		if self.LoadTarget() == reg {
 			return true
 		}
@@ -138,6 +138,8 @@ func (self Op) Dump(pc PC, m *M, out io.Writer) PC {
 			m := (*Macro)(d)
 			fmt.Fprintf(out, "LOAD_MACRO %v %v", self.Reg1(), m)
 			return pc+1
+		case LOAD_NIL:
+			fmt.Fprintf(out, "LOAD_NIL %v", self.Reg1())
 		case LOAD_TYPE:
 			t := m.types[self.LoadTypeId()]
 			fmt.Fprintf(out, "LOAD_TYPE %v", self.Reg1(), t)
@@ -186,6 +188,7 @@ const (
 	LOAD_INT1
 	LOAD_INT2
 	LOAD_MACRO
+	LOAD_NIL
 	LOAD_TYPE
 	NOP
 	RET
@@ -423,6 +426,10 @@ func (self *M) EmitLoadMacro(dst Reg, val *Macro) *Op {
 	return op
 }
 
+func (self *M) EmitLoadNil(dst Reg) *Op {
+	return self.Emit(Op(LOAD_NIL))
+}
+
 const (
 	OpLoadTypeIdBit = OpReg2Bit
 )
@@ -430,6 +437,7 @@ const (
 func (self Op) LoadTypeId() TypeId {
 	return TypeId((self >> OpLoadTypeIdBit) & ((1 << OpTypeIdBits) - 1))
 }
+
 
 func (self *M) EmitLoadType(dst Reg, _type Type) *Op {
 	return self.Emit(Op(LOAD_TYPE + Op(dst << OpCodeBits) + Op(_type.Id() << OpLoadTypeIdBit)))
@@ -444,6 +452,11 @@ func (self *M) EmitNop() *Op {
 	return self.Emit(0).InitNop()
 }
 
+func (self *Op) InitRet() *Op {
+	*self = RET
+	return self
+}
+
 func (self *M) EmitRet() {
-	self.Emit(RET)
+	self.Emit(0).InitRet()
 }
