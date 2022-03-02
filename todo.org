@@ -1,6 +1,8 @@
 * add let macro
 ** (let [x 1 y 2] ...)
 ** add bindings to readme
+* add typeof fun
+** add to readme
 * add lambda support
 ** Fun with Gensymmed id
 *** add M.GenSym()

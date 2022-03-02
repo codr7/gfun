@@ -153,9 +153,19 @@ func (self *M) Eval(pc PC) error {
 		case NOP:
 			pc++
 
+		case REC:
+			prev := self.PopEnv()
+			env := self.Env()
+
+			for i := 1; i < FunArgCount+1; i++ {
+				env.Regs[i] = prev.Regs[i]
+			}
+
+			pc = self.Frame().startPc
+
 		case RET:
 			f := self.PopFrame()
-			pc = f.ret
+			pc = f.retPc
 			self.PopEnv()
 			
 		default:

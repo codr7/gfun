@@ -3,12 +3,13 @@ package gfun
 type Frame struct {
 	outer *Frame
 	fun *Fun
-	ret PC
+	startPc, retPc PC
 }
 
-func (self *Frame) Init(outer *Frame, fun *Fun, ret PC) *Frame {
+func (self *Frame) Init(outer *Frame, fun *Fun, startPc, retPc PC) *Frame {
 	self.fun = fun
-	self.ret = ret
+	self.startPc = startPc
+	self.retPc = retPc
 	return self
 }
 
@@ -20,9 +21,9 @@ func (self *M) Frame() *Frame {
 	return &self.frames[self.frameCount-1]
 }
 
-func (self *M) PushFrame(fun *Fun, ret PC) *Frame {
+func (self *M) PushFrame(fun *Fun, startPc, retPc PC) *Frame {
 	f := &self.frames[self.frameCount]
-	f.Init(self.Frame(), fun, ret)
+	f.Init(self.Frame(), fun, startPc, retPc)
 	self.frameCount++
 	return f
 }

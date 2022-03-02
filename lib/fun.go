@@ -51,6 +51,28 @@ func (self *Fun) Call(ret PC, m *M) (PC, error) {
 	return self.body(self, ret, m)
 }
 
+func (self *Fun) FuseTailCall(startPc PC, m *M) {
+	done := false
+	
+	for i := m.emitPc-1; !done && i >= startPc; i-- {
+		op := &m.ops[i]
+		
+		switch op.OpCode() {
+		case CALLI1:
+			if op.CallI1Target() == self {
+				op.InitRec()
+				log.Printf("Fused tail call at %v", i)
+			}
+
+			done = true
+		case GOTO, LOAD_NIL, NOP, RET:
+			break
+		default:
+			done = true
+		}
+	}
+}
+
 func (self *Fun) Emit(body Form, m *M) error {
 	env := m.Env()
 	skip := m.Emit(0)
@@ -71,9 +93,10 @@ func (self *Fun) Emit(body Form, m *M) error {
 	m.EmitRet()
 	skip.InitGoto(m.emitPc)
 	startPc = m.Fuse(startPc)
+	self.FuseTailCall(startPc, m)
 	
 	self.body = func(fun *Fun, ret PC, m *M) (PC, error) {
-		m.PushFrame(fun, ret)
+		m.PushFrame(fun, startPc, ret)
 		return startPc, nil
 	}
 

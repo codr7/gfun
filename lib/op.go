@@ -43,7 +43,7 @@ func (self Op) ReadsReg(reg Reg) bool {
 		if (reg > 0 && reg < FunArgCount+1) || reg == self.CallTarget(){
 			return true
 		}
-	case CALLI1, CALLI2:
+	case CALLI1, CALLI2, REC:
 		if (reg > 0 && reg < FunArgCount+1) {
 			return true
 		}
@@ -142,9 +142,11 @@ func (self Op) Dump(pc PC, m *M, out io.Writer) PC {
 			fmt.Fprintf(out, "LOAD_NIL %v", self.Reg1())
 		case LOAD_TYPE:
 			t := m.types[self.LoadTypeId()]
-			fmt.Fprintf(out, "LOAD_TYPE %v", self.Reg1(), t)
+			fmt.Fprintf(out, "LOAD_TYPE %v %v", self.Reg1(), t)
 		case NOP:
 			fmt.Fprintf(out, "NOP")
+		case REC:
+			fmt.Fprintf(out, "REC")
 		case RET:
 			fmt.Fprintf(out, "RET")
 		default:
@@ -191,6 +193,7 @@ const (
 	LOAD_NIL
 	LOAD_TYPE
 	NOP
+	REC
 	RET
 )
 
@@ -450,6 +453,15 @@ func (self *Op) InitNop() *Op {
 
 func (self *M) EmitNop() *Op {
 	return self.Emit(0).InitNop()
+}
+
+func (self *Op) InitRec() *Op {
+	*self = REC
+	return self
+}
+
+func (self *M) EmitRec() {
+	self.Emit(0).InitRec()
 }
 
 func (self *Op) InitRet() *Op {
