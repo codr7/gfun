@@ -20,7 +20,7 @@ The different layers of the implementation are well separated and may be used se
 For performance reasons, the core loop specifies operations inline; which means that it's impossible to extend with new operations without changing the code. Limits on number of operations, number of registers etc. are determined by the bytecode [format](https://github.com/codr7/gfun/blob/main/lib/op.go).
 
 ### status
-It's still early days, I'm currently profiling and optimizing the implementation guided by initial performance numbers.
+It's still early days, I'm currently profiling and optimizing the implementation guided by initial performance numbers. All functionality described in this document is expected to work.
 
 ### setup
 
