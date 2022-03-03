@@ -119,14 +119,14 @@ func (self *M) Env() *Env {
 	return &self.envs[self.envCount-1]
 }
 
-func (self *M) PushEnv() *Env {
+func (self *M) BeginEnv() *Env {
 	e := &self.envs[self.envCount]
 	e.Init(self.Env())
 	self.envCount++
 	return e
 }
 
-func (self *M) PopEnv() *Env {
+func (self *M) EndEnv() *Env {
 	self.envCount--
 	e := &self.envs[self.envCount]
 	self.Env().Regs[0] = e.Regs[0]

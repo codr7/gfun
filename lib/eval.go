@@ -37,7 +37,7 @@ func (self *M) Eval(pc PC) error {
 			}
 
 			if pc == retPc {
-				self.PopEnv()
+				self.EndEnv()
 			}
 
 		case CALLI1:
@@ -49,7 +49,7 @@ func (self *M) Eval(pc PC) error {
 			}
 
 			if pc == retPc {
-				self.PopEnv()
+				self.EndEnv()
 			}
 
 		case CALLI2:
@@ -64,7 +64,7 @@ func (self *M) Eval(pc PC) error {
 			}
 
 			if pc == retPc {
-				self.PopEnv()
+				self.EndEnv()
 			}
 
 		case COPY:
@@ -105,12 +105,12 @@ func (self *M) Eval(pc PC) error {
 			env.Regs[0].Init(&self.BoolType, l.Type().EqVal(l, r))
 			pc++
 			
-		case ENV_POP:
-			self.PopEnv()
+		case ENV_BEG:
+			self.BeginEnv()
 			pc++
 
-		case ENV_PUSH:
-			self.PushEnv()
+		case ENV_END:
+			self.EndEnv()
 			pc++
 
 		case GOTO:
@@ -154,7 +154,7 @@ func (self *M) Eval(pc PC) error {
 			pc++
 
 		case REC:
-			prev := self.PopEnv()
+			prev := self.EndEnv()
 			env := self.Env()
 
 			for i := 1; i < FunArgCount+1; i++ {
@@ -164,9 +164,9 @@ func (self *M) Eval(pc PC) error {
 			pc = self.Frame().startPc
 
 		case RET:
-			f := self.PopFrame()
+			f := self.EndFrame()
 			pc = f.retPc
-			self.PopEnv()
+			self.EndEnv()
 			
 		default:
 			log.Fatalf("Unknown op code at pc %v: %v (%v)", pc, op.OpCode(), op)

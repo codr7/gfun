@@ -21,14 +21,14 @@ func (self *M) Frame() *Frame {
 	return &self.frames[self.frameCount-1]
 }
 
-func (self *M) PushFrame(fun *Fun, startPc, retPc PC) *Frame {
+func (self *M) BeginFrame(fun *Fun, startPc, retPc PC) *Frame {
 	f := &self.frames[self.frameCount]
 	f.Init(self.Frame(), fun, startPc, retPc)
 	self.frameCount++
 	return f
 }
 
-func (self *M) PopFrame() *Frame {
+func (self *M) EndFrame() *Frame {
 	self.frameCount--
 	return &self.frames[self.frameCount]
 }

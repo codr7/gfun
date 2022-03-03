@@ -156,7 +156,7 @@ func (self *FunType) EmitVal(val Val, reg Reg, m *M) error {
 
 func (self *FunType) EmitValCall(val Val, args []Form, pos Pos, m *M) error {
 	f := val.Data().(*Fun)
-	m.EmitEnvPush()
+	m.EmitEnvBeg()
 
 	if len(args) < f.argCount {
 		return fmt.Errorf("Missing args for %v: %v %v", f, f.argCount, args)
@@ -268,7 +268,7 @@ func (self *VarType) EmitVal(val Val, reg Reg, m *M) error {
 func (self *VarType) EmitValCall(val Val, args []Form, pos Pos, m *M) error {
 	reg := val.Data().(Reg)
 	
-	m.EmitEnvPush()
+	m.EmitEnvBeg()
 
 	for i := 0; i < len(args); i++ {
 		a := args[i]

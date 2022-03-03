@@ -16,10 +16,10 @@
 ** (let [bar 42] "foo %bar")
 ** parse form after %
 ** add M.strings []strings.Builder
-** add STRING_PUSH/POP ops
-*** pop puts result in reg 0
-** add STRING_DUMP(Reg) op
-** add STRING_WRITE(val string) op
+** add STRING_BEG/END(Reg) ops
+*** end puts result in reg 0
+** add STRING_DUMP(Reg, Reg) op
+** add STRING_WRITE(Reg, string) op
 *** write as many ops as needed
 *** encode size & use remaining bits
 ** add EmitLoadString

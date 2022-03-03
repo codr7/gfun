@@ -96,7 +96,7 @@ func (self *Fun) Emit(body Form, m *M) error {
 	self.FuseTailCall(startPc, m)
 	
 	self.body = func(fun *Fun, ret PC, m *M) (PC, error) {
-		m.PushFrame(fun, startPc, ret)
+		m.BeginFrame(fun, startPc, ret)
 		return startPc, nil
 	}
 

@@ -114,10 +114,10 @@ func (self Op) Dump(pc PC, m *M, out io.Writer) PC {
 			fmt.Fprintf(out, "DEC %v %v", self.DecTarget(), self.DecDelta())
 		case EQ:
 			fmt.Fprintf(out, "EQ %v %v", self.Reg1(), self.Reg2())
-		case ENV_POP:
-			fmt.Fprintf(out, "ENV_POP")
-		case ENV_PUSH:
-			fmt.Fprintf(out, "ENV_PUSH")
+		case ENV_BEG:
+			fmt.Fprintf(out, "ENV_BEG")
+		case ENV_END:
+			fmt.Fprintf(out, "ENV_END")
 		case GOTO:
 			fmt.Fprintf(out, "GOTO %v", self.GotoPc())
 		case LOAD_BOOL:
@@ -181,8 +181,8 @@ const (
 	CALLI2
 	COPY
 	DEC
-	ENV_POP
-	ENV_PUSH
+	ENV_BEG
+	ENV_END
 	EQ
 	GOTO
 	LOAD_BOOL
@@ -328,12 +328,12 @@ func (self *M) EmitDec(target Reg, delta int) *Op {
 	return self.Emit(Op(DEC + Op(target << OpDecTargetBit) + Op(delta << OpDecDeltaBit)))
 }
 
-func (self *M) EmitEnvPop() {
-	self.Emit(ENV_POP)
+func (self *M) EmitEnvBeg() {
+	self.Emit(ENV_BEG)
 }
 
-func (self *M) EmitEnvPush() {
-	self.Emit(ENV_PUSH)
+func (self *M) EmitEnvEnd() {
+	self.Emit(ENV_END)
 }
 
 /* Eq */

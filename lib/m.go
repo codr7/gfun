@@ -47,7 +47,7 @@ type M struct {
 
 func (self *M) Init() {
 	self.symLookup = make(map[string]*Sym)
-	self.PushEnv()
+	self.BeginEnv()
 
 	self.AnyType.Init(self, self.Sym("Any"))
 	self.BoolType.Init(self, self.Sym("Bool"), &self.AnyType)
@@ -253,7 +253,7 @@ func (self *M) Init() {
 		func(macro *Macro, args []Form, pos Pos, m *M) error {
 			bsf := args[0].(*SliceForm).items
 			var stashOps []Op
-			m.EmitEnvPush()
+			m.EmitEnvBeg()
 
 			for i := 0; i < len(bsf); i++ {
 				k := bsf[i].(*IdForm).id
@@ -302,7 +302,7 @@ func (self *M) Init() {
 				m.Emit(stashOps[i])
 			}
 
-			m.EmitEnvPop()
+			m.EmitEnvEnd()
 			return nil
 		})
 

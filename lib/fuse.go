@@ -158,7 +158,7 @@ func (self *M) FuseUnusedLoads(startPc PC) int {
 					break
 				}
 				
-				if op2.ReadsReg(reg) || (reg == 0 && j == self.emitPc-1) || op2.OpCode() == ENV_PUSH {
+				if op2.ReadsReg(reg) || (reg == 0 && j == self.emitPc-1) || op2.OpCode() == ENV_BEG {
 					used = true
 					break
 				}
