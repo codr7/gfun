@@ -1,3 +1,31 @@
+* add DoForm
+** emit in sequence
+** use to collect body forms in (fun) && (fun:)
+* add test macro
+* add Form.Val() *Val
+** use in let/set
+** bind during emit instead if != nil
+*** Push/PopEnv() in let-macro
+* add string interpolation
+** (let [bar 42] "foo %bar")
+** parse form after %
+** add M.strings []strings.Builder
+** add STRING_PUSH/POP ops
+*** pop puts result in reg 0
+** add STRING_DUMP(Reg) op
+** add STRING_WRITE(val string) op
+*** write as many ops as needed
+*** encode size & use remaining bits
+** add EmitLoadString
+*** use existing ops
+* add continuations
+** add State type
+*** envs/frames & pc
+** add suspend macro
+*** (suspend x ...)
+*** pass current State & eval body
+** add restore fun 
+*** restore State
 * profile
 * add user macros
 ** add quoting
@@ -17,6 +45,3 @@
 *** move M types
 * add Multi
 ** add DISPATCH op
-
-(let [foo (fun [bar Int] Int bar)]
-  (foo 42))
