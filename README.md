@@ -95,9 +95,12 @@ Values may be bound until further using `set`.
 Functions may be anonymous.
 
 ```
-  (fun [] Int 42)
+  (let [foo (fun [bar Int] Int bar)]
+    (dump foo)
+    (foo 42))
   
 (Fun 0x824634418592)
+42
 ```
 
 ### performance

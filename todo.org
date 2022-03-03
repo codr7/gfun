@@ -1,5 +1,3 @@
-* add call fun
-** call the function immediately, pop env if native & return
 * profile
 * add user macros
 ** add quoting
@@ -20,4 +18,5 @@
 * add Multi
 ** add DISPATCH op
 
-(fun [] Int 42)
+(let [foo (fun [bar Int] Int bar)]
+  (foo 42))

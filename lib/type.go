@@ -265,6 +265,23 @@ func (self *VarType) EmitVal(val Val, reg Reg, m *M) error {
 	return nil
 }
 
+func (self *VarType) EmitValCall(val Val, args []Form, pos Pos, m *M) error {
+	reg := val.Data().(Reg)
+	
+	m.EmitEnvPush()
+
+	for i := 0; i < len(args); i++ {
+		a := args[i]
+		
+		if err := a.Emit(Reg(i+1), m); err != nil {
+			return err
+		}
+	}
+
+	m.EmitCall(reg)
+	return nil
+}
+
 func (self *VarType) DumpVal(val Val, out io.Writer) {
 	fmt.Fprintf(out, "(Var %v)", val.Data().(Reg))
 }
