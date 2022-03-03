@@ -6,6 +6,12 @@
 ** use in let/set
 ** bind during emit instead if != nil
 *** Push/PopEnv() in let-macro
+* add first class syms
+** add LOAD_SYM op
+*** use id
+** add ReadQuote()
+** add Form.Quote() Val
+** add M.SymType
 * add string interpolation
 ** (let [bar 42] "foo %bar")
 ** parse form after %
@@ -28,18 +34,9 @@
 *** restore State
 * profile
 * add user macros
-** add quoting
-** add ReadQuote
-** add Form.Quote() (Val, error)
 * typecheck Fun args
 * typecheck Fun ret
 * speed up Isa using static array
-* add LOAD_SYM
-** rename m.syms to symLookup
-** add static array m.syms
-** add SymId type
-** add ReadSym()
-** add M.SymType
 * add Lib
 ** add abc
 *** move M types
