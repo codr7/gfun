@@ -3,6 +3,7 @@ package gfun
 import (
 	"fmt"
 	"os"
+	"unsafe"
 )
 
 const (
@@ -10,6 +11,7 @@ const (
 	TypeCount = 1 << OpTypeIdBits
 	EnvCount = 1024
 	FrameCount = 1024
+	SymCount = 1024
 )
 
 type PC int
@@ -24,20 +26,27 @@ type M struct {
 	NilType NilType
 	VarType VarType
 	
-	syms map[string]*Sym
+	syms [SymCount]Sym
+	symLookup map[string]*Sym
+	nextSymId SymId
+	
 	types [TypeCount]Type
 	nextTypeId TypeId
+
 	ops [OpCount]Op
 	emitPc PC
+
 	envs [EnvCount]Env
 	envCount int
+
 	frames [FrameCount] Frame
 	frameCount int
+
 	debug bool
 }
 
 func (self *M) Init() {
-	self.syms = make(map[string]*Sym)
+	self.symLookup = make(map[string]*Sym)
 	self.PushEnv()
 
 	self.AnyType.Init(self, self.Sym("Any"))
@@ -97,14 +106,14 @@ func (self *M) Init() {
 
 	self.BindNewFun(self.Sym("debug"), nil, &self.BoolType,
 		func(fun *Fun, ret PC, m *M) (PC, error) {
-			self.debug = !self.debug
-			self.Env().Regs[0].Init(&m.BoolType, self.debug)
+			m.debug = !m.debug
+			m.Env().Regs[0].Init(&m.BoolType, m.debug)
 			return ret, nil
 		})
 
 	self.BindNewMacro(self.Sym("dec"), 1,
 		func(macro *Macro, args []Form, pos Pos, m *M) error {
-			reg, err := self.Env().GetReg(args[0].(*IdForm).id)
+			reg, err := m.Env().GetReg(args[0].(*IdForm).id)
 
 			if err != nil {
 				return err
@@ -116,7 +125,7 @@ func (self *M) Init() {
 				d = args[1].(*LitForm).val.Data().(int)
 			}	
 				
-			self.EmitDec(reg, d)
+			m.EmitDec(reg, d)
 			return nil
 		})
 
@@ -133,10 +142,49 @@ func (self *M) Init() {
 	
 	self.BindNewFun(self.Sym("dump"), NewFunArgs().Add(self.Sym("val"), &self.AnyType), nil,
 		func(fun *Fun, ret PC, m *M) (PC, error) {
-			v := self.Env().Regs[1]
+			v := m.Env().Regs[1]
 			v.Type().DumpVal(v, os.Stdout)
 			fmt.Fprintf(os.Stdout, "\n")
 			return ret, nil
+		})
+
+	self.BindNewMacro(self.Sym("fun"), 3,
+		func(macro *Macro, args []Form, pos Pos, m *M) error {
+			var err error
+			argForms := args[0].(*SliceForm).items
+			var funArgs FunArgs
+			
+			for i := 0; i < len(argForms); i++ {
+				aid := argForms[i].(*IdForm).id
+				i++
+				atid := argForms[i].(*IdForm).id
+				at, err := m.GetType(atid)
+
+				if err != nil {
+					return err
+				}
+
+				funArgs = funArgs.Add(aid, at)
+			}
+			
+			retId := args[1].(*IdForm).id
+			var ret Type
+
+			if ret, err = m.GetType(retId); err != nil {
+				return err
+			}
+
+
+			fun := NewFun(nil, funArgs, ret, nil)
+			fun.name = m.GenSym(fmt.Sprintf("0x%v", uintptr(unsafe.Pointer(fun))))
+			body := args[2]			
+
+			if err := fun.Emit(body, m); err != nil {
+				return err
+			}
+			m.Bind(fun.name).Init(&m.FunType, fun)
+			m.EmitLoadFun(0, fun)
+			return nil
 		})
 
 	self.BindNewMacro(self.Sym("fun:"), 4,
@@ -150,7 +198,7 @@ func (self *M) Init() {
 				aid := argForms[i].(*IdForm).id
 				i++
 				atid := argForms[i].(*IdForm).id
-				at, err := self.GetType(atid)
+				at, err := m.GetType(atid)
 
 				if err != nil {
 					return err
@@ -227,7 +275,7 @@ func (self *M) Init() {
 					stashReg := env.AllocReg()
 					reg := Reg(-1)
 						
-					if v.Type() == &self.VarType {
+					if v.Type() == &m.VarType {
 						reg = v.Data().(Reg)
 
 					} else {
@@ -251,7 +299,7 @@ func (self *M) Init() {
 			}
 
 			for i := len(stashOps)-1; i >= 0; i-- {
-				self.Emit(stashOps[i])
+				m.Emit(stashOps[i])
 			}
 
 			m.EmitEnvPop()
@@ -279,7 +327,7 @@ func (self *M) Init() {
 				} else {
 					reg := Reg(-1)
 						
-					if v.Type() == &self.VarType {
+					if v.Type() == &m.VarType {
 						reg = v.Data().(Reg)
 
 					} else {
@@ -301,8 +349,8 @@ func (self *M) Init() {
 		NewFunArgs().Add(self.Sym("val"), &self.AnyType),
 		&self.MetaType,
 		func(fun *Fun, ret PC, m *M) (PC, error) {
-			env := self.Env()
-			env.Regs[0].Init(&self.MetaType, env.Regs[1].Type())
+			env := m.Env()
+			env.Regs[0].Init(&m.MetaType, env.Regs[1].Type())
 			return ret, nil
 		})
 
@@ -312,10 +360,10 @@ func (self *M) Init() {
 			Add(self.Sym("r"), &self.IntType),
 		&self.IntType,
 		func(fun *Fun, ret PC, m *M) (PC, error) {
-			env := self.Env()
+			env := m.Env()
 			l := env.Regs[1].Data().(int)
 			r := env.Regs[2].Data().(int)
-			env.Regs[0].Init(&self.IntType, l+r)
+			env.Regs[0].Init(&m.IntType, l+r)
 			return ret, nil
 		})
 
@@ -325,10 +373,10 @@ func (self *M) Init() {
 			Add(self.Sym("r"), &self.IntType),
 		&self.IntType,
 		func(fun *Fun, ret PC, m *M) (PC, error) {
-			env := self.Env()
+			env := m.Env()
 			l := env.Regs[1].Data().(int)
 			r := env.Regs[2].Data().(int)
-			env.Regs[0].Init(&self.IntType, l-r)
+			env.Regs[0].Init(&m.IntType, l-r)
 			return ret, nil
 		})
 
@@ -338,10 +386,10 @@ func (self *M) Init() {
 			Add(self.Sym("r"), &self.IntType),
 		&self.BoolType,
 		func(fun *Fun, ret PC, m *M) (PC, error) {
-			env := self.Env()
+			env := m.Env()
 			l := env.Regs[1].Data().(int)
 			r := env.Regs[2].Data().(int)
-			env.Regs[0].Init(&self.BoolType, l < r)
+			env.Regs[0].Init(&m.BoolType, l < r)
 			return ret, nil
 		})
 }

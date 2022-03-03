@@ -1,10 +1,5 @@
-* add lambda support
-** Fun with Gensymmed id
-*** add M.GenSym()
-** Extract logic to parse arg list
-** add fun macro
-** fix closures
-** readme
+* add call fun
+** call the function immediately, pop env if native & return
 * profile
 * add user macros
 ** add quoting
@@ -24,3 +19,5 @@
 *** move M types
 * add Multi
 ** add DISPATCH op
+
+(fun [] Int 42)

@@ -42,6 +42,9 @@ Int
   (typeof Int)
 
 Meta
+  (typeof Meta)
+
+Meta
 ```
 
 #### Any
@@ -86,6 +89,15 @@ Values may be bound until further using `set`.
   baz
 
 42
+```
+
+### functions
+Functions may be anonymous.
+
+```
+  (fun [] Int 42)
+  
+(Fun 0x824634418592)
 ```
 
 ### performance
