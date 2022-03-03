@@ -60,6 +60,37 @@ func (self *CallForm) String() string {
 	return "()"
 }
 
+/* Do */
+
+type DoForm struct {
+	BasicForm
+	forms []Form
+}
+
+func NewDoForm(pos Pos, forms []Form) *DoForm {
+	return new(DoForm).Init(pos, forms)
+}
+
+func (self *DoForm) Init(pos Pos, forms []Form) *DoForm {
+	self.BasicForm.Init(pos)
+	self.forms = forms
+	return self
+}
+
+func (self *DoForm) Emit(reg Reg, m *M) error {
+	for _, f := range self.forms {
+		if err := f.Emit(reg, m); err != nil {
+			return err
+		}
+	}
+	
+	return nil
+}
+
+func (self *DoForm) String() string {
+	return "(do)"
+}
+
 /* Id */
 
 type IdForm struct {

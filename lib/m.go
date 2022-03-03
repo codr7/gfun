@@ -177,7 +177,7 @@ func (self *M) Init() {
 
 			fun := NewFun(nil, funArgs, ret, nil)
 			fun.name = m.GenSym(fmt.Sprintf("0x%v", uintptr(unsafe.Pointer(fun))))
-			body := args[2]			
+			body := NewDoForm(pos, args[2:])			
 
 			if err := fun.Emit(body, m); err != nil {
 				return err
@@ -215,7 +215,7 @@ func (self *M) Init() {
 			}
 			
 			fun := m.BindNewFun(id, funArgs, ret, nil)
-			body := args[3]			
+			body := NewDoForm(pos, args[3:])			
 
 			if err := fun.Emit(body, m); err != nil {
 				return err

@@ -1,6 +1,3 @@
-* add DoForm
-** emit in sequence
-** use to collect body forms in (fun) && (fun:)
 * add test macro
 * add Form.Val() *Val
 ** use in let/set
