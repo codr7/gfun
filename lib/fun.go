@@ -84,6 +84,10 @@ func (self *Fun) CaptureEnv(m *M) error {
 	env := m.Env()
 
 	for _, k := range self.syms {
+		if i := self.env.FindReg(k); i != -1 {
+			continue
+		}
+		
 		i, err := env.GetReg(k)
 		
 		if err != nil {

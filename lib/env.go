@@ -35,38 +35,44 @@ func (self *Env) Init(outer *Env) *Env {
 	return self
 }
 
-func (self *Env) FindVal(key *Sym) *Val {
+func (self *Env) FindReg(key *Sym) Reg {
+	tryOuter := func() Reg {
+		if self.outer == nil {
+			return -1
+		}
+		
+		return self.outer.FindReg(key)
+	}
+	
 	if self.bindings == nil {
-		return nil
+		return tryOuter()
 	}
 	
 	reg, ok := self.bindings[key]
 	
 	if !ok {
-		return nil
+		return tryOuter()
 	}
 
+	return reg
+}
+
+func (self *Env) FindVal(key *Sym) *Val {
+	reg := self.FindReg(key)
+	
+	if reg == -1 {
+		return nil
+	}
+	
 	return &self.Regs[reg]
 }
 
 
 func (self *Env) GetReg(key *Sym) (Reg, error) {
-	tryOuter := func() (Reg, error) {
-		if self.outer == nil {
-			return -1, fmt.Errorf("Unknown id: %v", key)
-		}
-		
-		return self.outer.GetReg(key)
-	}
-	
-	if self.bindings == nil {
-		return tryOuter()
-	}
-	
-	reg, ok := self.bindings[key]
-	
-	if !ok {
-		return tryOuter()
+	reg := self.FindReg(key)
+
+	if reg == -1 {
+		return -1, fmt.Errorf("Unknown id: %v", key)
 	}
 
 	return reg, nil
