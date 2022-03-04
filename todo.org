@@ -1,8 +1,12 @@
-* add test macro
+* fix escaping closure test
 * add Form.Val() *Val
 ** use in let/set
 ** bind during emit instead if != nil
 *** Push/PopEnv() in let-macro
+* make else optional in if-macro
+** readme
+* add and/or macros
+** readme
 * add first class syms
 ** add LOAD_SYM op
 *** use id
@@ -12,23 +16,17 @@
 * add string interpolation
 ** (let [bar 42] "foo %bar")
 ** parse form after %
-** add M.strings []strings.Builder
-** add STRING_BEG/END(Reg) ops
+** add Stream type
+*** strings.Builder
+** add STREAM_BEG/END(Reg) ops
 *** end puts result in reg 0
-** add STRING_DUMP(Reg, Reg) op
-** add STRING_WRITE(Reg, string) op
+** add STREAM_DUMP(Reg, Reg) op
+** add STREAM_PUTS(Reg, string) op
 *** write as many ops as needed
 *** encode size & use remaining bits
 ** add EmitLoadString
 *** use existing ops
-* add continuations
-** add State type
-*** envs/frames & pc
-** add suspend macro
-*** (suspend x ...)
-*** pass current State & eval body
-** add restore fun 
-*** restore State
+* add (include ...) macro
 * profile
 * add user macros
 * typecheck Fun args
@@ -39,3 +37,7 @@
 *** move M types
 * add Multi
 ** add DISPATCH op
+
+(test 42
+  (let [bar (let [foo 42] (fun [] Int foo))]
+    (bar)))

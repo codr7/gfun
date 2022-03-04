@@ -5,36 +5,41 @@ import (
 	"log"
 )
 
+const (
+	ArgCount = 8
+)
+
 type FunBody = func(*Fun, PC, *M) (PC, error)
 
-type FunArg struct {
+type Arg struct {
 	name *Sym
 	_type Type
 }
 
-type FunArgs []FunArg
+type Args []Arg
 
-func NewFunArgs() FunArgs {
+func NewArgs() Args {
 	return nil
 }
 
-func (self FunArgs) Add(name *Sym, _type Type) FunArgs {
-	 return append(self, FunArg{name: name, _type: _type})
+func (self Args) Add(name *Sym, _type Type) Args {
+	 return append(self, Arg{name: name, _type: _type})
 }
 
 type Fun struct {
 	name *Sym
-	args [FunArgCount]FunArg
+	args [ArgCount]Arg
 	argCount int
 	ret Type
 	body FunBody
+	env *Env
 }
 
-func NewFun(name *Sym, args []FunArg, ret Type, body FunBody) *Fun {
+func NewFun(name *Sym, args []Arg, ret Type, body FunBody) *Fun {
 	return new(Fun).Init(name, args, ret, body)
 }
 
-func (self *Fun) Init(name *Sym, args []FunArg, ret Type, body FunBody) *Fun {
+func (self *Fun) Init(name *Sym, args []Arg, ret Type, body FunBody) *Fun {
 	self.name = name
 	
 	for i, a := range args {
@@ -73,11 +78,32 @@ func (self *Fun) FuseTailCall(startPc PC, m *M) {
 	}
 }
 
+func (self *Fun) CaptureEnv(m *M) {
+	self.env = new(Env).Init(nil)
+	env := m.Env()
+	
+	self.env.regCount = env.regCount
+
+	for i := Reg(0); i < env.regCount; i++ {
+		self.env.Regs[i] = env.Regs[i]
+	}
+
+	for env != nil {
+		for k, v := range env.bindings {
+			self.env.SetReg(k, v, true)
+		}
+
+		env = env.outer
+	}
+}
+
 func (self *Fun) Emit(body Form, m *M) error {
 	env := m.Env()
-	skip := m.Emit(0)
+	opReg := env.AllocReg()
+	m.EmitLoadFun(opReg, self)
+	op := m.Emit(0)
 	startPc := m.emitPc
-	
+
 	for i := 0; i < self.argCount; i++ {
 		a := self.args[i]
 		reg := env.AllocReg()
@@ -91,11 +117,12 @@ func (self *Fun) Emit(body Form, m *M) error {
 	}
 
 	m.EmitRet()
-	skip.InitGoto(m.emitPc)
+	op.InitFun(opReg, m.emitPc)
 	startPc = m.Fuse(startPc)
 	self.FuseTailCall(startPc, m)
 	
 	self.body = func(fun *Fun, ret PC, m *M) (PC, error) {
+		m.Env().outer = self.env
 		m.BeginFrame(fun, startPc, ret)
 		return startPc, nil
 	}
@@ -107,7 +134,7 @@ func (self *Fun) String() string {
 	return fmt.Sprintf("(Fun %v)", self.name)
 }
 
-func (self *M) BindNewFun(name *Sym, args []FunArg, ret Type, body FunBody) *Fun {
+func (self *M) BindNewFun(name *Sym, args []Arg, ret Type, body FunBody) *Fun {
 	f := NewFun(name, args, ret, body)
 	
 	if v := self.Env().SetVal(name, false); v == nil {

@@ -1,7 +1,9 @@
 package gfun
 
 import (
+	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"unsafe"
 )
@@ -47,7 +49,7 @@ type M struct {
 
 func (self *M) Init() {
 	self.symLookup = make(map[string]*Sym)
-	self.BeginEnv()
+	self.BeginEnv(nil)
 
 	self.AnyType.Init(self, self.Sym("Any"))
 	self.BoolType.Init(self, self.Sym("Bool"), &self.AnyType)
@@ -140,7 +142,7 @@ func (self *M) Init() {
 			return nil
 		})
 	
-	self.BindNewFun(self.Sym("dump"), NewFunArgs().Add(self.Sym("val"), &self.AnyType), nil,
+	self.BindNewFun(self.Sym("dump"), NewArgs().Add(self.Sym("val"), &self.AnyType), nil,
 		func(fun *Fun, ret PC, m *M) (PC, error) {
 			v := m.Env().Regs[1]
 			v.Type().DumpVal(v, os.Stdout)
@@ -152,7 +154,7 @@ func (self *M) Init() {
 		func(macro *Macro, args []Form, pos Pos, m *M) error {
 			var err error
 			argForms := args[0].(*SliceForm).items
-			var funArgs FunArgs
+			var funArgs Args
 			
 			for i := 0; i < len(argForms); i++ {
 				aid := argForms[i].(*IdForm).id
@@ -192,7 +194,7 @@ func (self *M) Init() {
 			var err error
 			id := args[0].(*IdForm).id
 			argForms := args[1].(*SliceForm).items
-			var funArgs FunArgs
+			var funArgs Args
 			
 			for i := 0; i < len(argForms); i++ {
 				aid := argForms[i].(*IdForm).id
@@ -345,8 +347,32 @@ func (self *M) Init() {
 			return nil
 		})
 
+	self.BindNewMacro(self.Sym("test"), 2,
+		func(macro *Macro, args []Form, pos Pos, m *M) error {
+			env := m.Env()
+			reg := env.AllocReg()
+			m.EmitEnvBeg()
+			
+			if err := args[0].Emit(reg, m); err != nil {
+				return err
+			}
+
+			op := m.EmitNop()
+			
+			for _, f := range args[1:] {
+				if err := f.Emit(0, m); err != nil {
+					return err
+				}
+			}
+
+			m.EmitEnvEnd()
+			m.EmitStop()
+			op.InitTest(reg, m.emitPc)
+			return nil
+		})
+
 	self.BindNewFun(self.Sym("typeof"),
-		NewFunArgs().Add(self.Sym("val"), &self.AnyType),
+		NewArgs().Add(self.Sym("val"), &self.AnyType),
 		&self.MetaType,
 		func(fun *Fun, ret PC, m *M) (PC, error) {
 			env := m.Env()
@@ -355,7 +381,7 @@ func (self *M) Init() {
 		})
 
 	self.BindNewFun(self.Sym("+"),
-		NewFunArgs().
+		NewArgs().
 			Add(self.Sym("l"), &self.IntType).
 			Add(self.Sym("r"), &self.IntType),
 		&self.IntType,
@@ -368,7 +394,7 @@ func (self *M) Init() {
 		})
 
 	self.BindNewFun(self.Sym("-"),
-		NewFunArgs().
+		NewArgs().
 			Add(self.Sym("l"), &self.IntType).
 			Add(self.Sym("r"), &self.IntType),
 		&self.IntType,
@@ -381,7 +407,7 @@ func (self *M) Init() {
 		})
 
 	self.BindNewFun(self.Sym("<"),
-		NewFunArgs().
+		NewArgs().
 			Add(self.Sym("l"), &self.IntType).
 			Add(self.Sym("r"), &self.IntType),
 		&self.BoolType,
@@ -396,4 +422,31 @@ func (self *M) Init() {
 
 func (self *M) Bind(name *Sym) *Val {
 	return self.Env().SetVal(name, false)
+}
+
+func (self *M) Include(path string) error {
+	f, err := os.Open(path)
+
+	if err != nil {
+		return fmt.Errorf("Failed opening file: %v %v", path, err)
+	}
+	
+	bin := bufio.NewReader(f)
+	pos := NewPos(path, 0, 0)
+
+	for {
+		if f, err := ReadForm(defaultReaders, bin, &pos, self); err == io.EOF {
+			break
+		} else if err != nil {
+			return err
+		} else if f == nil {
+			break
+		} else {
+			if err := f.Emit(0, self); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }

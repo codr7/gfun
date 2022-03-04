@@ -40,11 +40,11 @@ func (self Op) ReadsReg(reg Reg) bool {
 			return true
 		}
 	case CALL:
-		if (reg > 0 && reg < FunArgCount+1) || reg == self.CallTarget(){
+		if (reg > 0 && reg < ArgCount+1) || reg == self.CallTarget(){
 			return true
 		}
 	case CALLI1, CALLI2, REC:
-		if (reg > 0 && reg < FunArgCount+1) {
+		if (reg > 0 && reg < ArgCount+1) {
 			return true
 		}
 	case COPY:
@@ -57,6 +57,10 @@ func (self Op) ReadsReg(reg Reg) bool {
 		}
 	case RET:
 		if reg == 0 {
+			return true
+		}
+	case TEST:
+		if self.Reg1() == reg {
 			return true
 		}
 	default:
@@ -112,12 +116,14 @@ func (self Op) Dump(pc PC, m *M, out io.Writer) PC {
 			fmt.Fprintf(out, "BRANCH %v %v %v", self.BranchCond(), self.BranchTruePc(), self.BranchFalsePc())
 		case DEC:
 			fmt.Fprintf(out, "DEC %v %v", self.DecTarget(), self.DecDelta())
-		case EQ:
-			fmt.Fprintf(out, "EQ %v %v", self.Reg1(), self.Reg2())
 		case ENV_BEG:
 			fmt.Fprintf(out, "ENV_BEG")
 		case ENV_END:
 			fmt.Fprintf(out, "ENV_END")
+		case EQ:
+			fmt.Fprintf(out, "EQ %v %v", self.Reg1(), self.Reg2())
+		case FUN:
+			fmt.Fprintf(out, "FUN %v %v", self.Reg1(), self.FunEndPc())
 		case GOTO:
 			fmt.Fprintf(out, "GOTO %v", self.GotoPc())
 		case LOAD_BOOL:
@@ -149,6 +155,8 @@ func (self Op) Dump(pc PC, m *M, out io.Writer) PC {
 			fmt.Fprintf(out, "REC")
 		case RET:
 			fmt.Fprintf(out, "RET")
+		case TEST:
+			fmt.Fprintf(out, "TEST %v %v", self.Reg1(), self.TestEndPc())
 		default:
 			break
 		}
@@ -184,6 +192,7 @@ const (
 	ENV_BEG
 	ENV_END
 	EQ
+	FUN
 	GOTO
 	LOAD_BOOL
 	LOAD_FUN
@@ -195,6 +204,7 @@ const (
 	NOP
 	REC
 	RET
+	TEST
 )
 
 func (self *M) EmitStop() {
@@ -347,6 +357,21 @@ func (self *M) EmitEq(l, r Reg) *Op {
 	return self.Emit(0).InitEq(l, r)
 }
 
+/* Fun */
+
+func (self Op) FunEndPc() PC {
+	return PC((self >> OpReg2Bit) & ((1 << OpPcBits) - 1))
+}
+
+func (self *Op) InitFun (dst Reg, endPc PC) *Op {
+	*self = Op(FUN + Op(dst << OpCodeBits) + Op(endPc << OpReg2Bit))
+	return self
+}
+
+func (self *M) EmitFun(dst Reg, endPc PC) *Op {
+	return self.Emit(0).InitFun(dst, endPc)
+}
+
 /* Goto */
 
 func (self Op) GotoPc() PC {
@@ -460,8 +485,8 @@ func (self *Op) InitRec() *Op {
 	return self
 }
 
-func (self *M) EmitRec() {
-	self.Emit(0).InitRec()
+func (self *M) EmitRec() * Op {
+	return self.Emit(0).InitRec()
 }
 
 func (self *Op) InitRet() *Op {
@@ -469,6 +494,19 @@ func (self *Op) InitRet() *Op {
 	return self
 }
 
-func (self *M) EmitRet() {
-	self.Emit(0).InitRet()
+func (self *M) EmitRet() *Op {
+	return self.Emit(0).InitRet()
+}
+
+func (self Op) TestEndPc() PC {
+	return PC((self >> OpReg2Bit) & ((1 << OpPcBits) - 1))
+}
+
+func (self *Op) InitTest(exp Reg, endPc PC) *Op {
+	*self = Op(TEST + Op(exp << OpCodeBits) + Op(endPc << OpReg2Bit))
+	return self
+}
+
+func (self *M) EmitTest(exp Reg, endPc PC) *Op {
+	return self.Emit(0).InitTest(exp, endPc)
 }

@@ -6,7 +6,6 @@ import (
 
 const (
 	RegCount = 1 << OpRegBits
-	FunArgCount = 8
 )
 
 type Reg int
@@ -21,9 +20,10 @@ type Env struct {
 
 func (self *Env) Init(outer *Env) *Env {
 	self.outer = outer
-
+	self.bindings = nil
+	
 	if outer == nil {
-		self.regCount = FunArgCount+1
+		self.regCount = ArgCount+1
 	} else {
 		self.regCount = outer.regCount
 
@@ -119,9 +119,9 @@ func (self *M) Env() *Env {
 	return &self.envs[self.envCount-1]
 }
 
-func (self *M) BeginEnv() *Env {
+func (self *M) BeginEnv(outer *Env) *Env {
 	e := &self.envs[self.envCount]
-	e.Init(self.Env())
+	e.Init(outer)
 	self.envCount++
 	return e
 }

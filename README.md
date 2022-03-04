@@ -25,10 +25,11 @@ It's still early days, I'm currently profiling and optimizing the implementation
 ### setup
 
 ```
-$ cd tests
+$ cd test
 $ go test
 $ cd ..
 $ go build gfun.go
+$ ./gfun test/all.gf
 $ ./gfun
 ```
 
@@ -104,7 +105,7 @@ Functions may be anonymous.
 ```
 
 ### performance
-GFun is currently around 1-4 times as slow as Python.
+GFun is currently around 1-5 times as slow as Python.
 
 ```
   (fun: fibrec [n Int] Int
@@ -112,7 +113,7 @@ GFun is currently around 1-4 times as slow as Python.
 
   (bench 100 (fibrec 20))
 
-527
+562
 ```
 
 ```
@@ -121,7 +122,7 @@ GFun is currently around 1-4 times as slow as Python.
 
   (bench 10000 (fibtail 70 0 1))
 
-218
+214
 ```
 
 #### fusing

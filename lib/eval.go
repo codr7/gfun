@@ -31,7 +31,7 @@ func (self *M) Eval(pc PC) error {
 			fun := tgt.Data().(*Fun)
 			retPc := pc+1
 			var err error
-			
+
 			if pc, err = fun.Call(retPc, self); err != nil {
 				return err
 			}
@@ -106,13 +106,18 @@ func (self *M) Eval(pc PC) error {
 			pc++
 			
 		case ENV_BEG:
-			self.BeginEnv()
+			self.BeginEnv(self.Env())
 			pc++
 
 		case ENV_END:
 			self.EndEnv()
 			pc++
 
+		case FUN:
+			f := self.Env().Regs[op.Reg1()].Data().(*Fun)
+			f.CaptureEnv(self)
+			pc = op.FunEndPc()
+			
 		case GOTO:
 			pc = op.GotoPc()
 			
@@ -157,7 +162,7 @@ func (self *M) Eval(pc PC) error {
 			prev := self.EndEnv()
 			env := self.Env()
 
-			for i := 1; i < FunArgCount+1; i++ {
+			for i := 1; i < ArgCount+1; i++ {
 				env.Regs[i] = prev.Regs[i]
 			}
 
@@ -167,7 +172,22 @@ func (self *M) Eval(pc PC) error {
 			f := self.EndFrame()
 			pc = f.retPc
 			self.EndEnv()
+
+		case TEST:
+			env := self.Env()
+			exp := env.Regs[op.Reg1()]
 			
+			if err := self.Eval(pc+1); err != nil {
+				return err
+			}
+
+			if res := env.Regs[0]; !exp.Type().EqVal(exp, res) {
+				return fmt.Errorf("Test failed: %v/%v", res, exp)
+			}
+
+			fmt.Printf(".")
+			pc = op.TestEndPc()
+
 		default:
 			log.Fatalf("Unknown op code at pc %v: %v (%v)", pc, op.OpCode(), op)
 		}

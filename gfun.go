@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/codr7/gfun/lib"
 	"log"
@@ -8,15 +9,30 @@ import (
 )
 
 func main() {
+	flag.Parse()
+	args := flag.Args()
+
 	var m gfun.M
 	m.Init()
 
-	fmt.Printf("Welcome to GFun v%v!\n\n", gfun.Version)
+	if len(args) == 0 {
+		fmt.Printf("Welcome to GFun v%v!\n\n", gfun.Version)
 
-	//fmt.Printf("max: %v\n", 2 & ((1 << gfun.OpCodeBits)-1))
+		if err := m.Repl(gfun.DefaultReaders(), os.Stdin, os.Stdout); err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		for _, p := range args {
+			if err := m.Include(p); err != nil {
+				log.Fatal(err)
+			}
+		}
 
-	if err := m.Repl(gfun.DefaultReaders(), os.Stdin, os.Stdout); err != nil {
-		log.Fatal(err)
+		m.EmitStop()
+
+		if err := m.Eval(0); err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 
