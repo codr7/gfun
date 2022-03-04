@@ -115,7 +115,11 @@ func (self *M) Eval(pc PC) error {
 
 		case FUN:
 			f := self.Env().Regs[op.Reg1()].Data().(*Fun)
-			f.CaptureEnv(self)
+
+			if err := f.CaptureEnv(self); err != nil {
+				return err
+			}
+			
 			pc = op.FunEndPc()
 			
 		case GOTO:

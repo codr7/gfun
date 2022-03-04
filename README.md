@@ -94,7 +94,7 @@ Functions may be anonymous.
 ```
 
 ### performance
-GFun is currently around 1-5 times as slow as Python.
+GFun is currently around 1-6 times as slow as Python.
 
 ```
   (fun: fibrec [n Int] Int
@@ -102,7 +102,7 @@ GFun is currently around 1-5 times as slow as Python.
 
   (bench 100 (fibrec 20))
 
-673
+734
 ```
 
 ```
@@ -111,7 +111,7 @@ GFun is currently around 1-5 times as slow as Python.
 
   (bench 10000 (fibtail 70 0 1))
 
-229
+226
 ```
 
 #### fusing

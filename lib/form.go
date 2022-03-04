@@ -5,6 +5,7 @@ import (
 )
 
 type Form interface {
+	GetSyms(in []*Sym) []*Sym
 	Emit(Reg, *M) error
 	EmitCall([]Form, Pos, *M) error
 }
@@ -15,6 +16,10 @@ type BasicForm struct {
 
 func (self *BasicForm) Init(pos Pos) {
 	self.pos = pos
+}
+
+func (self *BasicForm) GetSyms(in []*Sym) []*Sym {
+	return in
 }
 
 func (self *BasicForm) Emit(reg Reg, m *M) error {
@@ -42,6 +47,16 @@ func (self *CallForm) Init(pos Pos, target Form, args []Form) *CallForm {
 	self.target = target
 	self.args = args
 	return self
+}
+
+func (self *CallForm) GetSyms(in []*Sym) []*Sym {
+	in = self.target.GetSyms(in)
+	
+	for _, f := range self.args {
+		in = f.GetSyms(in)
+	}
+
+	return in
 }
 
 func (self *CallForm) Emit(reg Reg, m *M) error {
@@ -77,6 +92,14 @@ func (self *DoForm) Init(pos Pos, forms []Form) *DoForm {
 	return self
 }
 
+func (self *DoForm) GetSyms(in []*Sym) []*Sym {
+	for _, f := range self.forms {
+		in = f.GetSyms(in)
+	}
+
+	return in
+}
+
 func (self *DoForm) Emit(reg Reg, m *M) error {
 	for _, f := range self.forms {
 		if err := f.Emit(reg, m); err != nil {
@@ -106,6 +129,10 @@ func (self *IdForm) Init(pos Pos, id *Sym) *IdForm {
 	self.BasicForm.Init(pos)
 	self.id = id
 	return self
+}
+
+func (self *IdForm) GetSyms(in []*Sym) []*Sym {
+	return append(in, self.id)
 }
 
 func (self *IdForm) Emit(reg Reg, m *M) error {
@@ -172,6 +199,14 @@ func (self *SliceForm) Init(pos Pos, items []Form) *SliceForm {
 	self.BasicForm.Init(pos)
 	self.items = items
 	return self
+}
+
+func (self *SliceForm) GetSyms(in []*Sym) []*Sym {
+	for _, f := range self.items {
+		in = f.GetSyms(in)
+	}
+
+	return in
 }
 
 func (self *SliceForm) String() string {

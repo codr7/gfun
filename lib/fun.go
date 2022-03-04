@@ -32,6 +32,7 @@ type Fun struct {
 	argCount int
 	ret Type
 	body FunBody
+	syms []*Sym
 	env *Env
 }
 
@@ -78,23 +79,26 @@ func (self *Fun) FuseTailCall(startPc PC, m *M) {
 	}
 }
 
-func (self *Fun) CaptureEnv(m *M) {
+func (self *Fun) CaptureEnv(m *M) error {
 	self.env = new(Env).Init(nil)
 	env := m.Env()
-	
-	self.env.regCount = env.regCount
 
-	for i := Reg(0); i < env.regCount; i++ {
-		self.env.Regs[i] = env.Regs[i]
-	}
-
-	for env != nil {
-		for k, v := range env.bindings {
-			self.env.SetReg(k, v, true)
+	for _, k := range self.syms {
+		i, err := env.GetReg(k)
+		
+		if err != nil {
+			return err
 		}
 
-		env = env.outer
+		self.env.SetReg(k, i, false)
+		self.env.Regs[i] = env.Regs[i]
+
+		if i >= self.env.regCount {
+			self.env.regCount = i+1
+		}	
 	}
+
+	return nil
 }
 
 func (self *Fun) Emit(body Form, m *M) error {
@@ -103,7 +107,8 @@ func (self *Fun) Emit(body Form, m *M) error {
 	m.EmitLoadFun(opReg, self)
 	op := m.Emit(0)
 	startPc := m.emitPc
-
+	self.syms = body.GetSyms(nil)
+	
 	for i := 0; i < self.argCount; i++ {
 		a := self.args[i]
 		reg := env.AllocReg()
@@ -125,7 +130,7 @@ func (self *Fun) Emit(body Form, m *M) error {
 		env := m.Env()
 		env.outer = self.env
 
-		for i := Reg(ArgCount+1); i < self.env.regCount; i++ {
+		for _, i := range self.env.bindings {
 			env.Regs[i] = self.env.Regs[i]
 		}
 		
