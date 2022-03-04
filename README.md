@@ -102,7 +102,7 @@ GFun is currently around 1-5 times as slow as Python.
 
   (bench 100 (fibrec 20))
 
-562
+673
 ```
 
 ```
@@ -111,7 +111,7 @@ GFun is currently around 1-5 times as slow as Python.
 
   (bench 10000 (fibtail 70 0 1))
 
-214
+229
 ```
 
 #### fusing
