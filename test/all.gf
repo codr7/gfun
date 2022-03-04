@@ -11,17 +11,6 @@
   (let [foo 35 bar (+ foo 7)] bar))
 
 (test 42
-  (let [foo 42]
-    (fun: bar [] Int foo)
-    (bar)))
-
-(test 3
-  (let [foo 1]
-    (fun: bar [] Int foo)
-    (let [foo 3]
-      (bar))))
-
-(test 42
   (set foo 35 bar 7 baz (+ 35 7))
   baz)
 
@@ -29,6 +18,21 @@
   (let [foo (fun [bar Int] Int bar)]
     (foo 42)))
 
+(test 42
+  (let [foo 42]
+    (fun: bar [] Int foo)
+    (bar)))
+
+(test 42
+  (let [bar (let [foo 42] (fun [] Int foo))]
+    (bar)))
+
+(test 1
+  (let [foo 1]
+    (fun: bar [] Int foo)
+    (let [foo 3]
+      (bar))))
+      
 (test 55
   (fun: fibrec [n Int] Int
     (if (< n 2) n (+ (fibrec (dec n)) (fibrec (dec n 2)))))

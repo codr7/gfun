@@ -55,7 +55,7 @@ func TestAdd(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	m.EmitEnvPush()
+	m.EmitEnvBeg()
 	m.EmitCallI(f)
 	m.EmitStop()
 

@@ -1,4 +1,3 @@
-* fix escaping closure test
 * add Form.Val() *Val
 ** use in let/set
 ** bind during emit instead if != nil
@@ -38,6 +37,4 @@
 * add Multi
 ** add DISPATCH op
 
-(test 42
-  (let [bar (let [foo 42] (fun [] Int foo))]
-    (bar)))
+

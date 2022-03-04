@@ -17,6 +17,10 @@ func (self *Sym) Init(id SymId, name string) *Sym {
 	return self
 }
 
+func (self *Sym) Name() string {
+	return self.name
+}
+
 func (self *Sym) String() string {
 	return self.name
 }

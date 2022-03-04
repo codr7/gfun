@@ -72,17 +72,6 @@ Values may be temprarily bound to identifiers using `let`.
 42
 ```
 
-Rebinding temporarily binds the outer value, ie. bindings act as scoped special vars.
-
-```
-  (let [foo 1]
-    (fun: bar [] Int foo)
-    (let [foo 3]
-      (bar)))
-
-3
-```
-
 Values may be bound until further using `set`.
 
 ```

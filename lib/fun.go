@@ -122,7 +122,13 @@ func (self *Fun) Emit(body Form, m *M) error {
 	self.FuseTailCall(startPc, m)
 	
 	self.body = func(fun *Fun, ret PC, m *M) (PC, error) {
-		m.Env().outer = self.env
+		env := m.Env()
+		env.outer = self.env
+
+		for i := Reg(ArgCount+1); i < self.env.regCount; i++ {
+			env.Regs[i] = self.env.Regs[i]
+		}
+		
 		m.BeginFrame(fun, startPc, ret)
 		return startPc, nil
 	}
