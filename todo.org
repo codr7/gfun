@@ -1,7 +1,7 @@
 * add Form.Val() *Val
 ** use in let/set
 ** bind during emit instead if != nil
-*** Push/PopEnv() in let-macro
+** call Begin/EndEnv() in let-macro
 * make else optional in if-macro
 ** readme
 * add and/or macros
