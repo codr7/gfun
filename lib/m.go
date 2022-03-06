@@ -256,12 +256,21 @@ func (self *M) Init() {
 			bsf := args[0].(*SliceForm).items
 			var stashOps []Op
 			m.EmitEnvBeg()
+			env := m.BeginEnv(m.Env())
+			defer m.EndEnv()
 
 			for i := 0; i < len(bsf); i++ {
 				k := bsf[i].(*IdForm).id
 				i++
 				vf := bsf[i]
-				env := m.Env()
+				
+				if v, err := vf.Val(self); err != nil {
+					return err
+				} else if v != nil {
+					*env.SetVal(k, true) = *v
+					continue
+				}
+
 				v := env.FindVal(k)
 				
 				if v == nil {
@@ -310,11 +319,21 @@ func (self *M) Init() {
 
 		self.BindNewMacro(self.Sym("set"), 2,
 		func(macro *Macro, args []Form, pos Pos, m *M) error {
+			env := m.Env()
+
 			for i := 0; i < len(args); i++ {
 				k := args[i].(*IdForm).id
 				i++
 				vf := args[i]
-				env := m.Env()
+
+				/*
+				if v, err := vf.Val(self); err != nil {
+					return err
+				} else if v != nil {
+					*env.SetVal(k, true) = *v
+					continue
+				}*/
+				
 				v := env.FindVal(k)
 				
 				if v == nil {

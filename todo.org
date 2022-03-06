@@ -1,7 +1,7 @@
-* add Form.Val() *Val
-** use in let/set
-** bind during emit instead if != nil
-** call Begin/EndEnv() in let-macro
+* remove Env.SetVal force arg
+* fuse reg overwrite without use
+** (let [foo (fun [bar Int] Int bar)]
+    (foo 42))
 * make else optional in if-macro
 ** readme
 * add and/or macros

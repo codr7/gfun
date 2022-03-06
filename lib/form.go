@@ -8,6 +8,7 @@ type Form interface {
 	GetSyms(in []*Sym) []*Sym
 	Emit(Reg, *M) error
 	EmitCall([]Form, Pos, *M) error
+	Val(*M) (*Val, error)
 }
 
 type BasicForm struct {
@@ -28,6 +29,10 @@ func (self *BasicForm) Emit(reg Reg, m *M) error {
 
 func (self *BasicForm) EmitCall(args []Form, pos Pos, m *M) error {
 	return fmt.Errorf("Call not supported: %v", self)
+}
+
+func (self *BasicForm) Val(m *M) (*Val, error) {
+	return nil, nil
 }
 
 /* Call */
@@ -155,6 +160,20 @@ func (self *IdForm) EmitCall(args []Form, pos Pos, m *M) error {
 	return v.Type().EmitValCall(*v, args, pos, m)	
 }
 
+func (self *IdForm) Val(m *M) (*Val, error) {
+	v, err := m.Env().GetVal(self.id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if v.Type() == &m.VarType {
+		return nil, nil
+	}
+
+	return v, nil
+}
+
 func (self *IdForm) String() string {
 	return self.id.name
 }
@@ -182,6 +201,10 @@ func (self *LitForm) Emit(reg Reg, m *M) error {
 
 func (self *LitForm) EmitCall(args []Form, pos Pos, m *M) error {
 	return self.val.Type().EmitValCall(self.val, args, pos, m)
+}
+
+func (self *LitForm) Val(m *M) (*Val, error) {
+	return &self.val, nil
 }
 
 /* Slice */
