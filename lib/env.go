@@ -101,13 +101,13 @@ func (self *Env) GetVal(key *Sym) (*Val, error) {
 	return &self.Regs[reg], nil
 }
 
-func (self *Env) SetVal(key *Sym, force bool) *Val {
+func (self *Env) SetVal(key *Sym) *Val {
 	if v := self.FindVal(key); v != nil {
 		return v
 	}
 	
 	reg := self.AllocReg()
-	self.SetReg(key, reg, force)
+	self.SetReg(key, reg, true)
 	return &self.Regs[reg]
 }
 

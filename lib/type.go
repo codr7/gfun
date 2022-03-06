@@ -95,7 +95,7 @@ func (self *BasicType) String() string {
 func (self *M) BindType(_type Type) {
 	n := _type.Name()
 	
-	if v := self.Env().SetVal(n, false); v == nil {
+	if v := self.Env().SetVal(n); v == nil {
 		log.Fatalf("Dup id: %v", n)
 	} else {
 		v.Init(&self.MetaType, _type)

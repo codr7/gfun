@@ -152,7 +152,7 @@ func (self *Fun) String() string {
 func (self *M) BindNewFun(name *Sym, args []Arg, ret Type, body FunBody) *Fun {
 	f := NewFun(name, args, ret, body)
 	
-	if v := self.Env().SetVal(name, false); v == nil {
+	if v := self.Env().SetVal(name); v == nil {
 		log.Fatalf("Dup id: %v", name)
 	} else {
 		v.Init(&self.FunType, f)

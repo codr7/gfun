@@ -267,7 +267,7 @@ func (self *M) Init() {
 				if v, err := vf.Val(self); err != nil {
 					return err
 				} else if v != nil {
-					*env.SetVal(k, true) = *v
+					*env.SetVal(k) = *v
 					continue
 				}
 
@@ -330,7 +330,7 @@ func (self *M) Init() {
 				if v, err := vf.Val(self); err != nil {
 					return err
 				} else if v != nil {
-					*env.SetVal(k, true) = *v
+					*env.SetVal(k) = *v
 					continue
 				}*/
 				
@@ -440,7 +440,7 @@ func (self *M) Init() {
 }
 
 func (self *M) Bind(name *Sym) *Val {
-	return self.Env().SetVal(name, false)
+	return self.Env().SetVal(name)
 }
 
 func (self *M) Include(path string) error {
